@@ -36,8 +36,22 @@ for device in $devices; do
 done
 
 # 安装本分块最高功能集需要的包一次，后续各功能集复用同一源码树和编译缓存。
-"$GITHUB_WORKSPACE/scripts/install-packages.sh" "$topdir" "$highest"
-"$GITHUB_WORKSPACE/scripts/apply-branding.sh" "$topdir"
+setup_log="$GITHUB_WORKSPACE/setup.log"
+set +e
+(
+  set -euo pipefail
+  "$GITHUB_WORKSPACE/scripts/install-packages.sh" "$topdir" "$highest"
+  "$GITHUB_WORKSPACE/scripts/apply-branding.sh" "$topdir"
+) 2>&1 | tee "$setup_log"
+setup_status=${PIPESTATUS[0]}
+set -e
+if ((setup_status != 0)); then
+  mkdir -p "$upload/setup-failure"
+  mv "$setup_log" "$upload/setup-failure/build-failure.log"
+  echo setup-failure > "$failures"
+  exit "$setup_status"
+fi
+rm -f "$setup_log"
 
 for feature in "${features[@]}"; do
   selected=()

@@ -28,7 +28,6 @@ env:
   TZ: Asia/Shanghai
   OKWRT_IP: 192.168.66.1
   OKWRT_USER: root
-  OKWRT_PASSWORD: password
 
 jobs:
   matrix:

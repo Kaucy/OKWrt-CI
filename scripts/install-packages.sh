@@ -13,7 +13,8 @@ replace_package() {
 }
 
 replace_package_tree() {
-  local name="$1" repo="$2" branch="$3" destination="$pkgdir/$name"
+  local name="$1" repo="$2" branch="$3"
+  local destination="$pkgdir/$name"
   rm -rf "$destination"
   git clone --depth=1 --single-branch --branch "$branch" "$repo" "$destination"
 
