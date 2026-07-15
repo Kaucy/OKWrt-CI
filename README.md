@@ -46,7 +46,7 @@ okwrt-mediatek-filogic-open-edge-core-part3--immortalwrt-mediatek-filogic-cudy_t
 
 当前目录合并去重后包含 **98 个 Qualcomm** 与 **191 个 MediaTek** 设备 profile。不同 LTS/Edge、Open/Pro 上游的实际设备集合并不完全相同，准确的设备代号、设备名称、SoC、版本支持与最高功能集统一列在 [DEVICES.md](DEVICES.md)。
 
-CI 按目标、功能集和最多 25 个设备一组生成矩阵，避免“每设备一个 Job”超过 GitHub Actions 矩阵规模。矩阵生成器会拒绝清单中超出上述芯片族的条目，防止旧清单或误配置扩大构建范围。Core 尝试构建范围内所有上游 profile；Standard 及以上只对架构、闪存、USB 和内存条件满足的设备生成。
+CI 按目标和最多 25 个设备一组生成 Bundle 矩阵，避免“每设备、每功能集一个 Job”造成大量重复编译。每个 Bundle 在同一源码树中依次增量构建 Core、Standard、Standard USB、Ultra 中符合设备条件的功能集，复用下载、工具链、内核与软件包编译结果。矩阵生成器会拒绝清单中超出上述芯片族的条目，防止旧清单或误配置扩大构建范围。
 
 ## 上游仓库
 
@@ -65,7 +65,18 @@ MediaTek Pro 使用 SDK/闭源驱动栈，目前只为闭源 `mt_wifi` 支持的
 
 ## 构建与发布
 
-- 每周一 03:00（中国时间，周一 04:00 日本时间）自动同步上游并完整构建。
+构建拆分为四个互不阻塞、可独立重跑的工作流：
+
+| 工作流 | 构建范围 | 每周启动时间（中国时间） |
+|---|---|---|
+| Build Qualcomm Open | Qualcomm Open LTS/Edge | 周一 03:00 |
+| Build Qualcomm Pro | Qualcomm Pro LTS/Edge | 周一 03:15 |
+| Build MediaTek Open | MediaTek Open LTS/Edge | 周一 03:30 |
+| Build MediaTek Pro | MediaTek Pro LTS/Edge | 周一 03:45 |
+
+- 四个工作流的成功资产按同一个 OK-Wrt 提交汇总到同一 Release；某个分片失败不会阻止其他分片或已完成固件发布。
+- 单个 Bundle 中某个高功能集失败时，已经完成的较低功能集仍会上传，便于下载和针对失败变种重试。
+- 当前完整矩阵为 **48 个 Bundle Job**，替代原先按功能集拆分的 117 个 Job。
 - `config/devices.tsv` 是 CI 的设备/版本/功能集数据源，`DEVICES.md` 由同一清单生成。
 - 更新上游设备清单时按 `scripts/update-device-catalog.py --help` 提供五个上游工作树路径，再提交两份生成文件。
 

@@ -1,4 +1,4 @@
-name: Build Qualcomm Open
+name: Build MediaTek Open
 
 on:
   workflow_dispatch:
@@ -21,7 +21,7 @@ on:
       - 'files/**'
       - 'scripts/**'
   schedule:
-    - cron: '0 19 * * 0'
+    - cron: '30 19 * * 0'
 
 permissions:
   contents: write
@@ -31,7 +31,7 @@ jobs:
   build:
     uses: ./.github/workflows/_build-shard.yml
     with:
-      platform: qcom
+      platform: mtk
       edition: open
       scope: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[smoke]') && 'smoke' || inputs.scope || 'all' }}
       channel: ${{ inputs.channel || 'all' }}
