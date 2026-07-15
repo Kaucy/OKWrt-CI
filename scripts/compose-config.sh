@@ -22,7 +22,16 @@ soc="${8:-all}"
 
 if [[ "$platform:$edition" == mtk:pro ]]; then
   case "$soc" in
-    mt7981|mt7986) printf 'CONFIG_MTK_CHIP_%s=y\n' "${soc^^}" >> "$topdir/.config" ;;
+    mt7981|mt7986)
+      # mt_wifi depends on the vendor conninfra module.  The package does not
+      # infer its APSOC implementation from CONFIG_MTK_CHIP_*, so leaving this
+      # choice unset builds conninfra.ko without the platform OF match table
+      # (apconninfra_of_ids) and fails at modpost.
+      printf '%s\n' \
+        "CONFIG_MTK_CHIP_${soc^^}=y" \
+        'CONFIG_MTK_CONNINFRA_APSOC=y' \
+        "CONFIG_MTK_CONNINFRA_APSOC_${soc^^}=y" >> "$topdir/.config"
+      ;;
     *) echo "Unsupported MediaTek Pro SoC: $soc" >&2; exit 1 ;;
   esac
 fi
