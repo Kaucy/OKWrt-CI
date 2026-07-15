@@ -111,6 +111,7 @@ for feature in "${features[@]}"; do
         # 完整构建已生成 host 工具；此时再串行重试厂商底层驱动，既可
         # 输出明确错误，也能修复部分厂商 Makefile 的并行竞态。
         make package/mtk/drivers/conninfra/compile -j1 V=s
+        make package/mtk/drivers/warp/compile -j1 V=s
         make -j"$(nproc)"
       else
         exit 1
