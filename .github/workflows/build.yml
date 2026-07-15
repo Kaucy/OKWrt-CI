@@ -154,6 +154,11 @@ jobs:
           scripts/apply-branding.sh /workdir/openwrt
           cd /workdir/openwrt
           make defconfig
+          if ! grep -Fq '_DEVICE_${{ matrix.device }}=y' .config; then
+            echo 'Expected device profile was not selected: ${{ matrix.device }}' >&2
+            grep '^CONFIG_TARGET_PROFILE=' .config >&2 || true
+            exit 1
+          fi
           cp .config "$GITHUB_WORKSPACE/okwrt.config"
 
       - name: Download sources
