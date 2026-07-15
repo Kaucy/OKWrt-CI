@@ -9,7 +9,8 @@ case "$platform:$edition" in
   qcom:open)
     repo="https://github.com/Kaucy/immortalwrt.git"
     upstream="https://github.com/immortalwrt/immortalwrt.git"
-    [[ "$channel" == lts ]] && branch="openwrt-25.12" || branch="master"
+    # openwrt-25.12 尚未包含 jdcloud_re-cs-02，暂时两个通道均使用 master。
+    branch="master"
     ;;
   qcom:pro)
     repo="https://github.com/Kaucy/LibWrt.git"
