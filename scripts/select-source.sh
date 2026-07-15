@@ -6,7 +6,12 @@ edition="$2"
 channel="$3"
 
 case "$platform:$edition" in
-  qcom:open|qcom:pro)
+  qcom:open)
+    repo="https://github.com/Kaucy/immortalwrt.git"
+    upstream="https://github.com/immortalwrt/immortalwrt.git"
+    [[ "$channel" == lts ]] && branch="openwrt-25.12" || branch="master"
+    ;;
+  qcom:pro)
     repo="https://github.com/Kaucy/LibWrt.git"
     upstream="https://github.com/LiBwrt/openwrt-6.x.git"
     [[ "$channel" == lts ]] && branch="25.12-nss" || branch="main-nss"
