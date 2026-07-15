@@ -17,12 +17,12 @@ TARGETS = (
     ("mtk", "mediatek", "filogic", "target/linux/mediatek/image/filogic.mk", True),
 )
 
-VERSION_LABELS = {
-    "open-lts": "Open LTS",
-    "open-edge": "Open Edge",
-    "pro-lts": "Pro LTS",
-    "pro-edge": "Pro Edge",
-}
+VERSION_COLUMNS = (
+    ("open-lts", "Open LTS"),
+    ("open-edge", "Open Edge"),
+    ("pro-lts", "Pro LTS"),
+    ("pro-edge", "Pro Edge"),
+)
 
 FEATURE_RANK = {"core": 0, "standard": 1, "standard-usb": 2, "ultra": 3}
 FEATURE_LABELS = {
@@ -222,6 +222,8 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
         "",
         "## 版本标记",
         "",
+        "✅ 表示该设备 profile 存在于对应产品线/通道；❌ 表示对应上游当前没有该 profile。",
+        "",
         "| 标记 | 含义 |",
         "|---|---|",
         "| Open LTS | 开源驱动稳定分支 |",
@@ -236,16 +238,16 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
             [
                 f'## {FEATURE_LABELS[feature]}（{len(entries)} 个设备 profile）',
                 "",
-                "| 平台/子目标 | 设备代号 | 设备名 | SoC | 版本支持 |",
-                "|---|---|---|---|---|",
+                "| 平台/子目标 | 设备代号 | 设备名 | SoC | Open LTS | Open Edge | Pro LTS | Pro Edge |",
+                "|---|---|---|---|:---:|:---:|:---:|:---:|",
             ]
         )
         for (platform, subtarget, device, name), item in entries:
-            versions = sorted(item["versions"], key=lambda version: (version.split("-")[0], version.split("-")[1]))
-            labels = ", ".join(VERSION_LABELS[version] for version in versions)
+            versions = item["versions"]
+            support = ["✅" if version in versions else "❌" for version, _label in VERSION_COLUMNS]
             safe_name = name.replace("|", "\\|")
             safe_soc = str(item["soc"]).replace("|", "\\|")
-            lines.append(f"| {platform}/{subtarget} | `{device}` | {safe_name} | {safe_soc} | {labels} |")
+            lines.append(f"| {platform}/{subtarget} | `{device}` | {safe_name} | {safe_soc} | {' | '.join(support)} |")
         lines.append("")
     output.write_text("\n".join(lines), encoding="utf-8")
 
