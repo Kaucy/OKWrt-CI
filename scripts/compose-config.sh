@@ -30,7 +30,9 @@ if [[ "$platform:$edition" == mtk:pro ]]; then
       printf '%s\n' \
         "CONFIG_MTK_CHIP_${soc^^}=y" \
         'CONFIG_MTK_CONNINFRA_APSOC=y' \
-        "CONFIG_MTK_CONNINFRA_APSOC_${soc^^}=y" >> "$topdir/.config"
+        "CONFIG_MTK_CONNINFRA_APSOC_${soc^^}=y" \
+        'CONFIG_WARP_VERSION=2' \
+        "CONFIG_WARP_CHIPSET=\"$soc\"" >> "$topdir/.config"
       ;;
     *) echo "Unsupported MediaTek Pro SoC: $soc" >&2; exit 1 ;;
   esac

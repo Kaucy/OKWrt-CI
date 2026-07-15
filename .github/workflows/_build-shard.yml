@@ -179,6 +179,9 @@ jobs:
           scripts/release-notes.sh release-notes.md
           printf '\n## 本次构建状态\n\n- 当前分片：`%s`\n- 构建结果：`%s`\n- 四个分片会逐步汇总到同一个 Release。\n' \
             "$SHARD" "$BUILD_RESULT" >> release-notes.md
+          # GitHub Release asset names are case-insensitive.  OpenWrt's
+          # lowercase sha256sums collides with the bundle-level SHA256SUMS.
+          find release-assets -type f -name sha256sums -delete
           find release-assets -type f -print0 | while IFS= read -r -d '' file; do
             dir="$(basename "$(dirname "$file")")"
             base="$(basename "$file")"
