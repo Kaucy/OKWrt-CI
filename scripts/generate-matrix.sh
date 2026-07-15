@@ -16,7 +16,7 @@ add_item() {
 }
 
 if [[ "$scope" == smoke ]]; then
-  add_item qcom pro lts core jdcloud_re-cs-02
+  add_item qcom open lts core jdcloud_re-cs-02
   add_item mtk open lts core cudy_tr3000-v1
 else
   for edition in open pro; do

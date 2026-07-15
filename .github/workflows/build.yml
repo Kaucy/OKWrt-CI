@@ -125,6 +125,9 @@ jobs:
           echo "Fork:     $fork_sha"
           echo "Upstream: $upstream_sha"
 
+      - name: Prepare platform source
+        run: scripts/prepare-source.sh /workdir/openwrt '${{ matrix.platform }}' '${{ matrix.edition }}' '${{ matrix.channel }}'
+
       - name: Restore build cache
         uses: actions/cache@v4
         with:
