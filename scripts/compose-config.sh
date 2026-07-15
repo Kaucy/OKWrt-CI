@@ -31,3 +31,15 @@ case "$feature_set" in
     exit 1
     ;;
 esac
+
+# LibWrt 的 QCA NSS 补丁新增了一个没有 OpenWrt 顶层 CONFIG_KERNEL_ 映射的
+# 内核选项。必须写入子目标内核配置，避免非交互构建停在 oldconfig 提问。
+if [[ "$platform" == qcom ]]; then
+  kernel_config="$topdir/target/linux/qualcommax/ipq60xx/config-default"
+  sed -i '/^#\? *CONFIG_NF_CONNTRACK_DSCPREMARK_EXT/d' "$kernel_config"
+  if [[ "$edition" == pro ]]; then
+    printf '%s\n' 'CONFIG_NF_CONNTRACK_DSCPREMARK_EXT=y' >> "$kernel_config"
+  else
+    printf '%s\n' '# CONFIG_NF_CONNTRACK_DSCPREMARK_EXT is not set' >> "$kernel_config"
+  fi
+fi
