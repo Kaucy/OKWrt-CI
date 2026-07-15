@@ -36,7 +36,7 @@ cat > "$output" <<'EOF'
 ## 设备范围
 
 - Qualcomm：IPQ50xx、IPQ60xx、IPQ807x/IPQ817x、IPQ95xx。
-- MediaTek：MT762x、MT798x（Filogic）。
+- MediaTek：MT798x（Filogic）。
 
 完整的设备代号、设备名、版本与功能集支持见 [设备支持目录](https://github.com/Kaucy/OKWrt-CI/blob/main/DEVICES.md)。Release 资产按目标、版本、功能集和分块组织，固件原始文件名中保留上游设备代号。
 

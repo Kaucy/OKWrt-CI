@@ -26,6 +26,13 @@ if [[ "$scope" == smoke ]]; then
 else
   while IFS=$'\t' read -r platform target subtarget device _name soc edition channel max_feature; do
     [[ "$platform" == platform ]] && continue
+    case "$platform:$target:$subtarget" in
+      qcom:qualcommax:ipq50xx|qcom:qualcommax:ipq60xx|qcom:qualcommax:ipq807x|qcom:qualcommbe:ipq95xx|mtk:mediatek:filogic) ;;
+      *)
+        echo "unsupported device scope in catalog: $platform/$target/$subtarget ($device)" >&2
+        exit 1
+        ;;
+    esac
     for feature in "${features[@]}"; do
       (( ranks[$feature] <= ranks[$max_feature] )) || continue
       add_group_device "$platform" "$target" "$subtarget" "$edition" "$channel" "$feature" "$soc" "$device"

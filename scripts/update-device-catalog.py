@@ -14,12 +14,6 @@ TARGETS = (
     ("qcom", "qualcommax", "ipq60xx", "target/linux/qualcommax/image/ipq60xx.mk", True),
     ("qcom", "qualcommax", "ipq807x", "target/linux/qualcommax/image/ipq807x.mk", True),
     ("qcom", "qualcommbe", "ipq95xx", "target/linux/qualcommbe/image/ipq95xx.mk", False),
-    ("mtk", "ramips", "mt7620", "target/linux/ramips/image/mt7620.mk", False),
-    ("mtk", "ramips", "mt7621", "target/linux/ramips/image/mt7621.mk", False),
-    ("mtk", "ramips", "mt76x8", "target/linux/ramips/image/mt76x8.mk", False),
-    ("mtk", "mediatek", "mt7622", "target/linux/mediatek/image/mt7622.mk", False),
-    ("mtk", "mediatek", "mt7623", "target/linux/mediatek/image/mt7623.mk", False),
-    ("mtk", "mediatek", "mt7629", "target/linux/mediatek/image/mt7629.mk", False),
     ("mtk", "mediatek", "filogic", "target/linux/mediatek/image/filogic.mk", True),
 )
 
@@ -112,12 +106,6 @@ def infer_soc(subtarget: str, device: str, values: dict[str, str]) -> str:
     haystack = " ".join((values.get("DEVICE_DTS", ""), values.get("body", ""), device))
     patterns = {
         "filogic": r"\b(mt798[1678])(?:[a-z])?\b",
-        "mt7620": r"\b(mt7620)\b",
-        "mt7621": r"\b(mt7621)\b",
-        "mt76x8": r"\b(mt76(?:28|88))\b",
-        "mt7622": r"\b(mt7622)\b",
-        "mt7623": r"\b(mt7623)\b",
-        "mt7629": r"\b(mt7629)\b",
     }
     match = re.search(patterns.get(subtarget, r"$^"), haystack, re.I)
     return match.group(1).lower() if match else subtarget
@@ -128,10 +116,6 @@ def max_feature(platform: str, subtarget: str, device: str, values: dict[str, st
         return "ultra"
     if device in STANDARD_USB_ALLOWLIST:
         return "standard-usb"
-
-    # HomeProxy and the selected dae/daed build are ARM64-only in this project.
-    if platform == "mtk" and subtarget != "filogic":
-        return "core"
 
     size = image_kib(values)
     if size is not None and size < 65536:
@@ -224,7 +208,6 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
         "- **Standard USB**：满足 Standard，且 profile 明确包含 USB 驱动；个别已知设备由白名单补充。",
         "- **Ultra**：需要 USB、大闪存和已确认的大内存；目前仅对明确验证过硬件规格的设备开放。",
         "- 功能集逐级包含；表格按设备当前允许的最高功能集归类。",
-        "- MT762x 为 MIPS/ARM 老平台，不满足本项目 HomeProxy 与 daed 的 ARM64 条件，因此只生成 Core。",
         "- IPQ817x 设备归入上游 `ipq807x` 子目标。IPQ95xx 当前有 IPQ9570/IPQ9574 profile；IPQ9554 仍需等待上游加入具体设备 profile。",
         "- MT798x Open 覆盖 Filogic 上游全部 profile；Pro 闭源 `mt_wifi` 当前仅支持 MT7981/MT7986。",
         "",
