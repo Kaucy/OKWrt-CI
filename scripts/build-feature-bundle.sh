@@ -99,11 +99,6 @@ for feature in "${features[@]}"; do
     cp .config "$out/config.txt"
     make download -j8
     find dl -type f -size -1024c -print -delete
-    if [[ "$platform:$edition" == "mtk:pro" ]]; then
-      # MTK 闭源驱动在并行 world 失败时只打印包名；先串行构建关键底层驱动，
-      # 既能保留完整日志，也能避免后续固件变种重复构建。
-      make package/mtk/drivers/conninfra/compile -j1 V=s
-    fi
     if [[ "$feature" != core ]]; then
       # daed 的 Go/eBPF/前端构建错误在并行 world 日志中只显示一行摘要。
       # 先单独构建可得到完整错误，并让后续 world 直接复用成功结果。
@@ -111,7 +106,16 @@ for feature in "${features[@]}"; do
     fi
     target_dir="$topdir/bin/targets/$target/$subtarget"
     rm -rf "$target_dir"
-    make -j"$(nproc)"
+    if ! make -j"$(nproc)"; then
+      if [[ "$platform:$edition" == "mtk:pro" ]]; then
+        # 完整构建已生成 host 工具；此时再串行重试厂商底层驱动，既可
+        # 输出明确错误，也能修复部分厂商 Makefile 的并行竞态。
+        make package/mtk/drivers/conninfra/compile -j1 V=s
+        make -j"$(nproc)"
+      else
+        exit 1
+      fi
+    fi
 
     test -d "$target_dir"
     find "$target_dir" -maxdepth 1 -type f -exec cp {} "$out/" \;
