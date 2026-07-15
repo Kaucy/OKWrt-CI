@@ -18,6 +18,16 @@ features=(core standard standard-usb ultra)
 declare -A ranks=([core]=0 [standard]=1 [standard-usb]=2 [ultra]=3)
 declare -A maximum=()
 
+reclaim_variant_space() {
+  # 功能集之间只清理可重新生成的文件；保留工具链、主机工具和包编译结果，
+  # 同时确保下一个功能集以及最终 artifact 上传始终有可用空间。
+  rm -rf "$topdir/bin/packages" "$topdir/dl/go-mod-cache"
+  find "$topdir/build_dir" "$topdir/staging_dir" -mindepth 1 -maxdepth 3 \
+    -type d -name 'root-*' -prune -exec rm -rf {} + 2>/dev/null || true
+  CCACHE_DIR="$topdir/.ccache" ccache --cleanup >/dev/null 2>&1 || true
+  df -h "$topdir"
+}
+
 : > "$failures"
 mkdir -p "$upload"
 
@@ -53,6 +63,10 @@ if ((setup_status != 0)); then
 fi
 rm -f "$setup_log"
 
+# OpenWrt 默认允许 ccache 持续增长；多功能集顺序构建时必须设上限，避免
+# 调试信息/BTF 变化产生的两套对象占满 GitHub runner。
+CCACHE_DIR="$topdir/.ccache" ccache --max-size=5G
+
 for feature in "${features[@]}"; do
   selected=()
   for device in $devices; do
@@ -85,9 +99,14 @@ for feature in "${features[@]}"; do
     cp .config "$out/config.txt"
     make download -j8
     find dl -type f -size -1024c -print -delete
+    if [[ "$feature" != core ]]; then
+      # daed 的 Go/eBPF/前端构建错误在并行 world 日志中只显示一行摘要。
+      # 先单独构建可得到完整错误，并让后续 world 直接复用成功结果。
+      make package/feeds/packages/daed/compile -j1 V=s
+    fi
     target_dir="$topdir/bin/targets/$target/$subtarget"
     rm -rf "$target_dir"
-    make -j"$(nproc)" || make -j1 V=s
+    make -j"$(nproc)"
 
     test -d "$target_dir"
     find "$target_dir" -maxdepth 1 -type f -exec cp {} "$out/" \;
@@ -98,6 +117,8 @@ for feature in "${features[@]}"; do
   status=${PIPESTATUS[0]}
   set -e
   echo "::endgroup::"
+
+  reclaim_variant_space
 
   if ((status != 0)); then
     printf '%s\n' "$variant" >> "$failures"

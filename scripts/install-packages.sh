@@ -46,7 +46,8 @@ case "$feature_set" in
     replace_package homeproxy https://github.com/immortalwrt/homeproxy.git master
     replace_package_tree passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git main
     replace_package_tree passwall2 https://github.com/Openwrt-Passwall/openwrt-passwall2.git main
-    replace_package_tree daed https://github.com/QiuSimons/luci-app-daed.git kix
+    # daed 与 LuCI 前端由当前源码树的 packages/luci feeds 提供。它们与
+    # 对应的内核、Go 和 BPF 基础设施同步更新，比覆盖为独立开发分支稳定。
     ;;
   *)
     echo "Unknown feature set: $feature_set" >&2
