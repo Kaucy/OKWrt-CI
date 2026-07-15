@@ -58,7 +58,7 @@ jobs:
           echo "$builds" | jq .
 
   build:
-    name: ${{ matrix.platform }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.feature }}
+    name: ${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.feature }}-${{ matrix.chunk }}
     needs: matrix
     runs-on: ubuntu-22.04
     timeout-minutes: 360
@@ -125,9 +125,6 @@ jobs:
           echo "Fork:     $fork_sha"
           echo "Upstream: $upstream_sha"
 
-      - name: Prepare platform source
-        run: scripts/prepare-source.sh /workdir/openwrt '${{ matrix.platform }}' '${{ matrix.edition }}' '${{ matrix.channel }}'
-
       - name: Restore build cache
         uses: actions/cache@v4
         with:
@@ -137,9 +134,9 @@ jobs:
             /workdir/openwrt/staging_dir/host*
             /workdir/openwrt/staging_dir/toolchain-*
             /workdir/openwrt/build_dir/host*
-          key: okwrt-${{ matrix.platform }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ env.UPSTREAM_SHA }}
+          key: okwrt-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ env.UPSTREAM_SHA }}
           restore-keys: |
-            okwrt-${{ matrix.platform }}-${{ matrix.edition }}-${{ matrix.channel }}-
+            okwrt-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-
 
       - name: Update feeds
         working-directory: /workdir/openwrt
@@ -153,15 +150,17 @@ jobs:
       - name: Compose configuration and apply branding
         run: |
           scripts/compose-config.sh /workdir/openwrt \
-            '${{ matrix.platform }}' '${{ matrix.edition }}' '${{ matrix.feature }}'
+            '${{ matrix.platform }}' '${{ matrix.target }}' '${{ matrix.subtarget }}' \
+            '${{ matrix.edition }}' '${{ matrix.feature }}' '${{ matrix.devices }}' '${{ matrix.soc }}'
           scripts/apply-branding.sh /workdir/openwrt
           cd /workdir/openwrt
           make defconfig
-          if ! grep -Fq '_DEVICE_${{ matrix.device }}=y' .config; then
-            echo 'Expected device profile was not selected: ${{ matrix.device }}' >&2
-            grep '^CONFIG_TARGET_PROFILE=' .config >&2 || true
-            exit 1
-          fi
+          for device in ${{ matrix.devices }}; do
+            if ! grep -Fq "_DEVICE_${device}=y" .config; then
+              echo "Expected device profile was not selected: $device" >&2
+              exit 1
+            fi
+          done
           cp .config "$GITHUB_WORKSPACE/okwrt.config"
 
       - name: Download sources
@@ -178,19 +177,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          variant="${{ matrix.platform }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.feature }}-${{ matrix.device }}"
+          variant="${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.feature }}-part${{ matrix.chunk }}"
           out="$GITHUB_WORKSPACE/upload/$variant"
           mkdir -p "$out"
           cp "$GITHUB_WORKSPACE/okwrt.config" "$out/config.txt"
-          find /workdir/openwrt/bin/targets -type f \
-            \( -name '*.bin' -o -name '*.itb' -o -name '*.ubi' -o -name '*.img.gz' \
-               -o -name '*.manifest' -o -name 'sha256sums' -o -name '*.buildinfo' \) \
-            -exec cp {} "$out/" \;
+          target_dir="/workdir/openwrt/bin/targets/${{ matrix.target }}/${{ matrix.subtarget }}"
+          find "$target_dir" -maxdepth 1 -type f -exec cp {} "$out/" \;
           printf '%s\n' \
             "variant=$variant" \
             "fork_sha=$FORK_SHA" \
             "upstream_sha=$UPSTREAM_SHA" \
             "source_branch=$SOURCE_BRANCH" \
+            "devices=${{ matrix.devices }}" \
             "management_ip=$OKWRT_IP" \
             "username=$OKWRT_USER" \
             "password=$OKWRT_PASSWORD" > "$out/build-metadata.txt"
@@ -199,7 +197,7 @@ jobs:
       - name: Upload variant
         uses: actions/upload-artifact@v4
         with:
-          name: okwrt-${{ matrix.platform }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.feature }}-${{ matrix.device }}
+          name: okwrt-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.feature }}-part${{ matrix.chunk }}
           path: upload/
           retention-days: 14
           if-no-files-found: error

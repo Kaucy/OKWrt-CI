@@ -29,16 +29,16 @@ cat > "$output" <<'EOF'
 | 功能集 | 软件包与能力 |
 |---|---|
 | Core | LuCI、Firewall4、dnsmasq-full、DDNS、UPnP、ttyd、iperf3、tcpdump、常用诊断工具 |
-| Standard | Core + NetSpeedTest、OpenClash/Mihomo、Tailscale、ZeroTier、Socat、MWAN3 |
+| Standard | Core + NetSpeedTest、OpenClash/Mihomo、HomeProxy、PassWall2（Xray + sing-box + nftables）、daed（LuCI + eBPF/BTF）、Tailscale、ZeroTier、Socat、MWAN3 |
 | Standard USB | Standard + USB 存储、USB 网卡、4G/5G 模组、Samba4、Diskman、QModem |
 | Ultra | Standard USB + Docker、containerd、Dockerman；仅适用于有 USB 且大内存设备 |
 
-## 设备对照
+## 设备范围
 
-| 固件设备名 | 产品型号 | 平台 | USB | Ultra |
-|---|---|---|---:|---:|
-| `jdcloud_re-cs-02` | 京东云雅典娜 AX6600 / RE-CS-02 | Qualcomm IPQ60xx | 是 | 是 |
-| `cudy_tr3000-v1` | Cudy TR3000 v1 | MediaTek MT7981 | 是 | 否（默认） |
+- Qualcomm：IPQ50xx、IPQ60xx、IPQ807x/IPQ817x、IPQ95xx。
+- MediaTek：MT762x、MT798x（Filogic）。
+
+完整的设备代号、设备名、版本与功能集支持见 [设备支持目录](https://github.com/Kaucy/OKWrt-CI/blob/main/DEVICES.md)。Release 资产按目标、版本、功能集和分块组织，固件原始文件名中保留上游设备代号。
 
 ## 软件包说明
 

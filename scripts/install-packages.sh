@@ -12,6 +12,18 @@ replace_package() {
   git clone --depth=1 --single-branch --branch "$branch" "$repo" "$pkgdir/$name"
 }
 
+replace_package_tree() {
+  local name="$1" repo="$2" branch="$3" destination="$pkgdir/$name"
+  rm -rf "$destination"
+  git clone --depth=1 --single-branch --branch "$branch" "$repo" "$destination"
+
+  # 这些仓库会覆盖 feeds 中的同名包，移除 feeds 符号链接以避免重复定义。
+  while IFS= read -r makefile; do
+    package="$(basename "$(dirname "$makefile")")"
+    find "$topdir/package/feeds" -mindepth 2 -maxdepth 2 -type l -name "$package" -delete 2>/dev/null || true
+  done < <(find "$destination" -mindepth 1 -maxdepth 2 -name Makefile -type f)
+}
+
 # OK-Wrt 始终使用 Argon。固定 25.12 分支，避免主题主分支接口漂移。
 replace_package argon https://github.com/sbwml/luci-theme-argon.git openwrt-25.12
 
@@ -29,6 +41,11 @@ case "$feature_set" in
     git -C "$tmp" sparse-checkout set luci-app-openclash
     mv "$tmp/luci-app-openclash" "$pkgdir/luci-app-openclash"
     rm -rf "$tmp"
+
+    replace_package homeproxy https://github.com/immortalwrt/homeproxy.git master
+    replace_package_tree passwall-packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git main
+    replace_package_tree passwall2 https://github.com/Openwrt-Passwall/openwrt-passwall2.git main
+    replace_package_tree daed https://github.com/QiuSimons/luci-app-daed.git kix
     ;;
   *)
     echo "Unknown feature set: $feature_set" >&2

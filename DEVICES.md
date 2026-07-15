@@ -1,0 +1,962 @@
+# OK-Wrt 设备与功能集支持
+
+> 本文件由 `scripts/update-device-catalog.py` 根据各构建上游的设备 profile 生成。CI 使用同源的 `config/devices.tsv`，不要手工修改生成区。
+
+## 判定规则
+
+- **Core**：所有纳入范围且在对应上游分支存在的 profile；小闪存设备可能因镜像空间不足被上游跳过。
+- **Standard**：ARM64 且镜像空间不小于 64 MiB，或上游未设置固定镜像上限的设备。
+- **Standard USB**：满足 Standard，且 profile 明确包含 USB 驱动；个别已知设备由白名单补充。
+- **Ultra**：需要 USB、大闪存和已确认的大内存；目前仅对明确验证过硬件规格的设备开放。
+- 功能集逐级包含；表格按设备当前允许的最高功能集归类。
+- MT762x 为 MIPS/ARM 老平台，不满足本项目 HomeProxy 与 daed 的 ARM64 条件，因此只生成 Core。
+- IPQ817x 设备归入上游 `ipq807x` 子目标。IPQ95xx 当前有 IPQ9570/IPQ9574 profile；IPQ9554 仍需等待上游加入具体设备 profile。
+- MT798x Open 覆盖 Filogic 上游全部 profile；Pro 闭源 `mt_wifi` 当前仅支持 MT7981/MT7986。
+
+## 当前设备范围
+
+| 平台 | 子目标 | 去重设备 profile 数 |
+|---|---|---:|
+| mtk | filogic | 191 |
+| mtk | mt7620 | 142 |
+| mtk | mt7621 | 298 |
+| mtk | mt7622 | 28 |
+| mtk | mt7623 | 3 |
+| mtk | mt7629 | 5 |
+| mtk | mt76x8 | 138 |
+| qcom | ipq50xx | 16 |
+| qcom | ipq60xx | 33 |
+| qcom | ipq807x | 47 |
+| qcom | ipq95xx | 2 |
+
+## 版本标记
+
+| 标记 | 含义 |
+|---|---|
+| Open LTS | 开源驱动稳定分支 |
+| Open Edge | 开源驱动开发分支 |
+| Pro LTS | NSS/MediaTek SDK 稳定分支或验证点 |
+| Pro Edge | NSS/MediaTek SDK 开发分支或最新验证点 |
+
+## Ultra（1 个设备 profile）
+
+| 平台/子目标 | 设备代号 | 设备名 | SoC | 版本支持 |
+|---|---|---|---|---|
+| qcom/ipq60xx | `jdcloud_re-cs-02` | JDCloud RE-CS-02 | ipq6010 | Open Edge, Pro Edge, Pro LTS |
+
+## Standard USB（88 个设备 profile）
+
+| 平台/子目标 | 设备代号 | 设备名 | SoC | 版本支持 |
+|---|---|---|---|---|
+| mtk/filogic | `acer_predator-w6` | Acer Predator Connect W6 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `acer_predator-w6d` | Acer Predator Connect W6d | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `acer_predator-w6x-stock` | Acer Predator Connect W6x (Stock Layout) | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `acer_predator-w6x-ubootmod` | Acer Predator Connect W6x (OpenWrt U-Boot Layout) | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `airpi_ap3000m` | Airpi AP3000M | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `asiarf_ap7986-003` | AsiaRF AP7986 003 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `asus_rt-ax59u` | ASUS RT-AX59U | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `asus_tuf-ax4200` | ASUS TUF-AX4200 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `asus_tuf-ax4200q` | ASUS TUF-AX4200Q | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `asus_tuf-ax6000` | ASUS TUF-AX6000 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `asus_zenwifi-bt8` | ASUS ZenWiFi BT8 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `asus_zenwifi-bt8-ubootmod` | ASUS ZenWiFi BT8 U-Boot mod | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `bananapi_bpi-r3` | Bananapi BPi-R3 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `bananapi_bpi-r3-mini` | Bananapi BPi-R3 Mini | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `bananapi_bpi-r4` | Bananapi BPi-R4 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `bananapi_bpi-r4-lite` | Bananapi BPi-R4 Lite | mt7987 | Open Edge, Open LTS |
+| mtk/filogic | `bananapi_bpi-r4-poe` | Bananapi BPi-R4 2.5GE | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `bazis_ax3000wm` | Bazis AX3000WM | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cmcc_rax3000m` | CMCC RAX3000M | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cmcc_rax3000me` | CMCC RAX3000Me | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `comfast_cf-wr632ax` | COMFAST CF-WR632AX | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `comfast_cf-wr632ax-ubootmod` | COMFAST CF-WR632AX | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `confiabits_mt7981` | Confiabits MT7981 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_tr3000-256mb-v1` | Cudy TR3000 256mb v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_tr3000-v1` | Cudy TR3000 v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_tr3000-v1-ubootmod` | Cudy TR3000 v1 (OpenWrt U-Boot layout) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wbr3000uax-v1` | Cudy WBR3000UAX v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wbr3000uax-v1-ubootmod` | Cudy WBR3000UAX v1 (OpenWrt U-Boot layout) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000p-v1` | Cudy WR3000P v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000p-v1-ubootmod` | Cudy WR3000P v1 (OpenWrt U-Boot layout) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `glinet_gl-mt2500` | GL.iNet GL-MT2500 MaxLinear PHY | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `glinet_gl-mt2500-airoha` | GL.iNet GL-MT2500 Airoha PHY | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `glinet_gl-mt3000` | GL.iNet GL-MT3000 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `glinet_gl-mt3600be` | GL.iNet GL-MT3600BE | mt7987 | Open Edge, Open LTS |
+| mtk/filogic | `glinet_gl-mt6000` | GL.iNet GL-MT6000 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `glinet_gl-x3000` | GL.iNet GL-X3000 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `glinet_gl-xe3000` | GL.iNet GL-XE3000 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `globitel_bt-r320` | Globitel BT-R320 | mt7981 | Open Edge |
+| mtk/filogic | `huasifei_wh3000-emmc` | Huasifei WH3000 eMMC | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `huasifei_wh3000-pro-emmc` | Huasifei WH3000 Pro eMMC | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `huasifei_wh3000-pro-nand` | Huasifei WH3000 Pro NAND | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `huasifei_wh3000r-nand` | Huasifei WH3000R NAND | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `jiorouter_ax6000-jidu6101` | JioRouter AX6000 JIDU6101 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `keenetic_kn-1812` | Keenetic KN-1812 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `keenetic_kn-3811` | Keenetic KN-3811 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `mediatek_mt7981-rfb` | MediaTek MT7981 rfb | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netcore_n60-pro` | Netcore N60 Pro | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netcraze_nc-1812` | Netcraze NC-1812 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `netis_nx32u` | netis NX32U | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `nradio_c8-668gl` | NRadio C8-668GL | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `openembed_som7981` | OpenEmbed SOM7981 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `openfi_6c` | OpenFi 6C | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `openwrt_one` | OpenWrt One | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `routerich_ax3000` | Routerich AX3000 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `routerich_ax3000-ubootmod` | Routerich AX3000 (OpenWrt U-Boot layout) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `routerich_ax3000-v1` | Routerich AX3000 v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `routerich_be7200` | Routerich BE7200 | mt7987 | Open Edge, Open LTS |
+| mtk/filogic | `smartrg_sdg-8733` | Adtran SDG-8733 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `smartrg_sdg-8734` | Adtran SDG-8734 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `teltonika_rutc50` | Teltonika RUTC50 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_tl-xdr4288` | TP-Link TL-XDR4288 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_tl-xdr6086` | TP-Link TL-XDR6086 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_tl-xdr6088` | TP-Link TL-XDR6088 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_tl-xtr8488` | TP-Link TL-XTR8488 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `unielec_u7981-01-emmc` | Unielec U7981-01 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `unielec_u7981-01-nand` | Unielec U7981-01 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `wavlink_wl-wn536ax6-a` | WAVLINK WL-WN536AX6 Rev a | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `wavlink_wl-wn551x3` | WAVLINK WL-WN551X3 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `wavlink_wl-wnt100x3` | WAVLINK WL-WNT100X3 | mt7981 | Open Edge |
+| mtk/filogic | `wavlink_wl-wnt100x3-ubootmod` | WAVLINK WL-WNT100X3 | mt7981 | Open Edge |
+| mtk/filogic | `zbtlink_zbt-z8102ax` | Zbtlink ZBT-Z8102AX | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zbtlink_zbt-z8102ax-v2` | Zbtlink ZBT-Z8102AX-V2 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zbtlink_zbt-z8106ax-s` | Zbtlink ZBT-Z8106AX-S | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zbtlink_zbt-z8106ax-t` | Zbtlink ZBT-Z8106AX-T | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zbtlink_zbt-z8803be` | Zbtlink ZBT-Z8803BE | mt7988 | Open Edge |
+| mtk/filogic | `zyxel_ex5601-t0-stock` | Zyxel EX5601-T0 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zyxel_ex5601-t0-ubootmod` | Zyxel EX5601-T0 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zyxel_ex5700-telenor` | Zyxel EX5700 (Telenor) | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq50xx | `linksys_mr5500` | Linksys MR5500 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq60xx | `linksys_mr7350` | Linksys MR7350 | ipq6000 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `linksys_mr7500` | Linksys MR7500 | ipq6018 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `arcadyan_aw1000` | Arcadyan AW1000 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `inseego_fg2000` | Inseego Fg2000 | ipq8072 | Pro Edge, Pro LTS |
+| qcom/ipq807x | `redmi_ax6` | Redmi AX6 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `redmi_ax6-stock` | Redmi AX6 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `tplink_deco-x80-5g` | TP-Link Deco X80-5G | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `xiaomi_ax3600` | Xiaomi AX3600 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `xiaomi_ax3600-stock` | Xiaomi AX3600 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+
+## Standard（159 个设备 profile）
+
+| 平台/子目标 | 设备代号 | 设备名 | SoC | 版本支持 |
+|---|---|---|---|---|
+| mtk/filogic | `abt_asr3000` | ABT ASR3000 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `acelink_ew-7886cax` | Acelink EW-7886CAX | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `acer_vero-w6m` | Acer Connect Vero W6m | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `arcadyan_mozart` | Arcadyan Mozart | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `asus_rt-ax52` | ASUS RT-AX52 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `asus_rt-ax57m` | ASUS RT-AX57M | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `buffalo_wsr-3000ax4p` | BUFFALO WSR-3000AX4P | mt7981 | Open Edge |
+| mtk/filogic | `cetron_ct3003-ubootmod` | Cetron CT3003 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cmcc_a10-stock` | CMCC A10 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cmcc_a10-ubootmod` | CMCC A10 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `comfast_cf-e393ax` | COMFAST CF-E393AX | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `comfast_cf-xr186` | COMFAST CF-XR186 | mt7981 | Open Edge |
+| mtk/filogic | `creatlentem_clt-r30b1` | CreatLentem CLT-R30B1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `creatlentem_clt-r30b1-112m` | CreatLentem CLT-R30B1 112M | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `creatlentem_clt-r30b1-ubi` | CreatLentem CLT-R30B1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_ap3000-v1` | Cudy AP3000 v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_ap3000outdoor-v1` | Cudy AP3000 Outdoor v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_ap3000wall-v1` | Cudy AP3000 Wall v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_m3000-v1` | Cudy M3000 v1/v2 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_m3000-v1-ubootmod` | Cudy M3000 v1/v2 (OpenWrt U-Boot layout) | mt7981 | Open Edge |
+| mtk/filogic | `cudy_m3000-v2-yt8821` | Cudy M3000 v2 with Motorcomm YT8821 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_m3000-v2-yt8821-ubootmod` | Cudy M3000 v2 with Motorcomm YT8821 (OpenWrt U-Boot layout) | mt7981 | Open Edge |
+| mtk/filogic | `cudy_wr3000e-v1` | Cudy WR3000E v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000e-v1-ubootmod` | Cudy WR3000E v1 (OpenWrt U-Boot layout) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000h-v1` | Cudy WR3000H v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000h-v1-ubootmod` | Cudy WR3000H v1 (OpenWrt U-Boot layout) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000s-v1` | Cudy WR3000S v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000s-v1-ubootmod` | Cudy WR3000S v1 (OpenWrt U-Boot layout) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `edgecore_eap111` | Edgecore EAP111 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `elecom_wrc-x3000gs3` | ELECOM WRC-X3000GS3 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `elecom_wrc-x6000gsd` | ELECOM WRC-X6000GSD | mt7986 | Open Edge |
+| mtk/filogic | `elecom_wrc-x6000qs` | ELECOM WRC-X6000QS | mt7986 | Open Edge |
+| mtk/filogic | `h3c_magic-nx30-pro` | H3C Magic NX30 Pro | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `imou_hx21` | Imou HX21 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `jcg_q30-pro` | JCG Q30 PRO | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `jdcloud_re-cp-03` | JDCloud RE-CP-03 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `keenetic_kap-630` | Keenetic KAP-630 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `keenetic_kn-3711` | Keenetic KN-3711 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `keenetic_kn-3911` | Keenetic KN-3911 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `konka_komi-a31` | Konka KOMI A31 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `livinet_li320` | Livinet Li320 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `livinet_zr-3020` | Livinet ZR-3020 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `livinet_zr-3020-ubootmod` | Livinet ZR-3020 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `mediatek_mt7986a-rfb-nand` | MediaTek MT7986 rfba AP (NAND) | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `mediatek_mt7986b-rfb` | MediaTek MTK7986 rfbb AP | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `mediatek_mt7987a-rfb` | MediaTek MT7987A rfb | mt7987 | Open Edge, Open LTS |
+| mtk/filogic | `mediatek_mt7988a-rfb` | MediaTek MT7988A rfb | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `mercusys_mr80x-v3` | MERCUSYS MR80X v3 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `mercusys_mr85x` | MERCUSYS MR85X | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `mercusys_mr90x-v1-ubi` | MERCUSYS MR90X v1 (UBI) | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netcore_n60` | Netcore N60 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netcraze_nap-630` | Netcraze NAP-630 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netgear_eax17` | NETGEAR EAX17 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netis_eap930-v1` | netis EAP930 V1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netis_nx30v2` | netis NX30 V2 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netis_nx31` | netis NX31 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `nokia_ea0326gmp` | Nokia EA0326GMP | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `qihoo_360t7` | Qihoo 360T7 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `qihoo_360t7-ubi` | Qihoo 360T7 (UBI) | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `ruijie_rg-x60` | Ruijie RG-X60 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `ruijie_rg-x60-pro` | Ruijie RG-X60 Pro | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `smartrg_sdg-8612` | Adtran SDG-8612 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `smartrg_sdg-8614` | Adtran SDG-8614 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `smartrg_sdg-8622` | Adtran SDG-8622 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `smartrg_sdg-8632` | Adtran SDG-8632 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `smartrg_sdg-8733a` | Adtran SDG-8733A | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `snr_snr-cpe-ax2` | SNR SNR-CPE-AX2 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tenda_be12-pro` | Tenda BE12 Pro | mt7987 | Open Edge |
+| mtk/filogic | `tplink_f65-v1` | TP-Link F65 v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_tl-7dr7230-v1` | TP-Link TL-7DR7230 v1 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `tplink_tl-7dr7230-v2` | TP-Link TL-7DR7230 v2 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `tplink_tl-7dr7250-v1` | TP-Link TL-7DR7250 v1 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `ubnt_unifi-6-plus` | Ubiquiti UniFi U6+ | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `wavlink_wl-wn586x3b` | WAVLINK WL-WN586X3B | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `xiaomi_mi-router-ax3000t` | Xiaomi Mi Router AX3000T | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `xiaomi_mi-router-ax3000t-ubootmod` | Xiaomi Mi Router AX3000T | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `xiaomi_mi-router-wr30u-stock` | Xiaomi Mi Router WR30U | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `xiaomi_mi-router-wr30u-ubootmod` | Xiaomi Mi Router WR30U | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `xiaomi_redmi-router-ax6000-stock` | Xiaomi Redmi Router AX6000 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `xiaomi_redmi-router-ax6000-ubootmod` | Xiaomi Redmi Router AX6000 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zbtlink_zbt-z8103ax` | Zbtlink ZBT-Z8103AX | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zbtlink_zbt-z8103ax-c` | Zbtlink ZBT-Z8103AX-C | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zyxel_wx5600-t0-ubootmod` | Zyxel WX5600-T0 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq50xx | `glinet_gl-b3000` | GL.iNet GL-B3000 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `linksys_mx2000` | Linksys MX2000 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `linksys_mx5500` | Linksys MX5500 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `linksys_spnmx56` | Linksys SPNMX56 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `xiaomi_ax6000` | Xiaomi AX6000 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `xiaomi_redmi-ax5400` | Xiaomi Redmi AX5400 | ipq5018 | Open Edge |
+| qcom/ipq50xx | `yuncore_ax830` | Yuncore AX830 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `yuncore_ax850` | Yuncore AX850 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `zyxel_scr50axe` | Zyxel SCR50AXE | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq60xx | `alfa-network_ap120c-ax` | ALFA Network AP120C-AX | ipq6000 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `anysafe_e1` | AnySafe E1 | ipq6010 | Pro Edge, Pro LTS |
+| qcom/ipq60xx | `cambiumnetworks_xe3-4` | Cambium Networks XE3-4 | ipq6010 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `cmiot_ax18` | CMIOT AX18 | ipq6000 | Pro Edge, Pro LTS |
+| qcom/ipq60xx | `glinet_gl-ax1800` | GL.iNet GL-AX1800 | ipq6000 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `glinet_gl-axt1800` | GL.iNet GL-AXT1800 | ipq6000 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `jdcloud_re-cs-07` | JDCloud RE-CS-07 | ipq6010 | Open Edge, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `jdcloud_re-ss-01` | JDCloud RE-SS-01 | ipq6000 | Open Edge, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `kt_ar06-012h` | KT AR06-012H | ipq6000 | Pro Edge, Pro LTS |
+| qcom/ipq60xx | `lg_gapd-7500` | LG GAPD-7500 | ipq6000 | Pro Edge, Pro LTS |
+| qcom/ipq60xx | `link_nn6000-v1` | Link NN6000 v1 | ipq6000 | Open Edge, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `link_nn6000-v2` | Link NN6000 v2 | ipq6000 | Open Edge, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `netgear_rbr350` | Netgear RBR350 | ipq6018 | Open Edge, Pro Edge |
+| qcom/ipq60xx | `netgear_rbs350` | Netgear RBS350 | ipq6018 | Open Edge, Pro Edge |
+| qcom/ipq60xx | `netgear_wax214` | Netgear WAX214 | ipq6010 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `netgear_wax610` | Netgear WAX610 | ipq6010 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `netgear_wax610y` | Netgear WAX610Y | ipq6010 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `qihoo_360v6` | Qihoo 360V6 | ipq6000 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `redmi_ax5` | Redmi AX5 | ipq6000 | Pro Edge, Pro LTS |
+| qcom/ipq60xx | `redmi_ax5-jdcloud` | Redmi AX5 JDCloud | ipq6000 | Pro Edge, Pro LTS |
+| qcom/ipq60xx | `tplink_eap610-outdoor` | TP-Link EAP610-Outdoor | ipq6018 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `tplink_eap620-hd-v3` | TP-Link EAP620 HD v3 | ipq6018 | Open Edge, Pro Edge |
+| qcom/ipq60xx | `tplink_eap623-outdoor-hd-v1` | TP-Link EAP623-Outdoor HD v1 | ipq6018 | Open Edge, Pro Edge |
+| qcom/ipq60xx | `tplink_eap623od-hd-v1` | TP-Link EAP623-Outdoor HD v1 | ipq6018 | Open LTS, Pro LTS |
+| qcom/ipq60xx | `tplink_eap625-outdoor-hd-v1` | TP-Link EAP625-Outdoor HD v1 | ipq6018 | Open Edge, Pro Edge |
+| qcom/ipq60xx | `tplink_eap625-outdoor-hd-v1` | TP-Link EAP625-Outdoor HD v1 and v1.6 | ipq6018 | Open LTS, Pro LTS |
+| qcom/ipq60xx | `xiaomi_ax1800` | Xiaomi AX1800 | ipq6000 | Pro Edge, Pro LTS |
+| qcom/ipq60xx | `yuncore_fap650` | Yuncore FAP650 | ipq6018 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq60xx | `zn_m2` | ZN M2 | ipq6000 | Pro Edge, Pro LTS |
+| qcom/ipq807x | `aliyun_ap8220` | Aliyun AP8220 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `asus_rt-ax89x` | Asus RT-AX89X | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `buffalo_wxr-5950ax12` | Buffalo WXR-5950AX12 | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `cmcc_rm2-6` | CMCC RM2-6 | ipq8070 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `compex_wpq873` | Compex WPQ873 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `dynalink_dl-wrx36` | Dynalink DL-WRX36 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `edgecore_eap102` | Edgecore EAP102 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `edimax_cax1800` | Edimax CAX1800 | ipq8070 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `linksys_homewrk` | Linksys HomeWRK | ipq8174 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `linksys_mx4200v1` | Linksys MX4200 v1 | ipq8174 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `linksys_mx4200v2` | Linksys MX4200 v2 | ipq8174 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `linksys_mx4300` | Linksys MX4300 | ipq8174 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `linksys_mx5300` | Linksys MX5300 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `linksys_mx8500` | Linksys MX8500 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `netgear_rax120v2` | Netgear RAX120v2 | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `netgear_rbr750` | Netgear RBR750 | ipq8074 | Open Edge, Pro Edge |
+| qcom/ipq807x | `netgear_rbs750` | Netgear RBS750 | ipq8074 | Open Edge, Pro Edge |
+| qcom/ipq807x | `netgear_sxr80` | Netgear SXR80 | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `netgear_sxs80` | Netgear SXS80 | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `netgear_wax218` | Netgear WAX218 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `netgear_wax620` | Netgear WAX620 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `netgear_wax630` | Netgear WAX630 | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `prpl_haze` | prpl Foundation Haze | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `qnap_301w` | QNAP 301w | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `spectrum_sax1v1k` | Spectrum SAX1V1K | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `swaiot_s10sky` | Swaiot S10-SKY | ipq8071 | Pro Edge |
+| qcom/ipq807x | `tcl_linkhub-hh500v` | TCL LINKHUB HH500V | ipq8072 | Open Edge, Pro Edge |
+| qcom/ipq807x | `tplink_eap620hd-v1` | TP-Link EAP620 HD v1 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `tplink_eap660hd-v1` | TP-Link EAP660 HD v1 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `verizon_cr1000a` | Verizon CR1000A | ipq8072 | Pro Edge, Pro LTS |
+| qcom/ipq807x | `xiaomi_ax9000` | Xiaomi AX9000 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `xiaomi_ax9000-stock` | Xiaomi AX9000 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `yuncore_ax880` | Yuncore AX880 | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `zbtlink_zbt-z800ax` | Zbtlink ZBT-Z800AX | ipq8072 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `zte_mf269` | ZTE MF269 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `zte_mf269-stock` | ZTE MF269 | ipq8071 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `zyxel_nbg7815` | ZYXEL NBG7815 | ipq8074 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq95xx | `8devices_kiwi-dvk` | 8devices Kiwi-DVK | ipq9570 | Open Edge, Open LTS |
+
+## Core（655 个设备 profile）
+
+| 平台/子目标 | 设备代号 | 设备名 | SoC | 版本支持 |
+|---|---|---|---|---|
+| mtk/filogic | `alwaylink_m01k43` | AlwayLink M01K43 | mt7981 | Open Edge |
+| mtk/filogic | `buffalo_wsr-6000ax8` | Buffalo WSR-6000AX8 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cetron_ct3003` | Cetron CT3003 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_re3000-v1` | Cudy RE3000 v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `cudy_wr3000-v1` | Cudy WR3000 v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `dlink_aquila-pro-ai-e30-a1` | D-Link AQUILA PRO AI E30 A1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `dlink_aquila-pro-ai-m30-a1` | D-Link AQUILA PRO AI M30 A1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `dlink_aquila-pro-ai-m60-a1` | D-Link AQUILA PRO AI M60 A1 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `gatonetworks_gdsp` | GatoNetworks gdsp | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `iptime_ax3000m` | ipTIME AX3000M | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `iptime_ax3000q` | ipTIME AX3000Q | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `iptime_ax3000se` | ipTIME AX3000SE | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `iptime_ax3000sm` | ipTIME AX3000SM | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `iptime_ax7800m-6e` | ipTIME AX7800M-6E | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `kebidumei_ax3000-u22` | Kebidumei AX3000-U22 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `mercusys_mr90x-v1` | MERCUSYS MR90X v1 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `netgear_wax220` | NETGEAR WAX220 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tenbay_wr3000k` | Tenbay WR3000K | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `totolink_x6000r` | TOTOLINK X6000R | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_archer-ax80-v1` | TP-Link Archer AX80 v1 | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_archer-ax80-v1-eu` | TP-Link Archer AX80 v1 (EU) | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_be450` | TP-Link BE450 | mt7988 | Open Edge, Open LTS |
+| mtk/filogic | `tplink_eap683-lr` | TP-Link EAP683-LR | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_fr365-v1` | TP-Link FR365 v1 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `tplink_re6000xd` | TP-Link RE6000XD | mt7986 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `wavlink_wl-wn573hx3` | WAVLINK WL-WN573HX3 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `wavlink_wl-wn586x3` | WAVLINK WL-WN586X3 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `widelantech_wap430x` | Widelantech WAP430X | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `yuncore_ax835` | YunCore AX835 | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/filogic | `zyxel_nwa50ax-pro` | Zyxel NWA50AX Pro | mt7981 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| mtk/mt7620 | `aigale_ai-br100` | Aigale Ai-BR100 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `alfa-network_ac1200rm` | ALFA Network AC1200RM | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `alfa-network_r36m-e4g` | ALFA Network R36M-E4G | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `alfa-network_tube-e4g` | ALFA Network Tube-E4G | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `ampedwireless_b1200ex` | Amped Wireless B1200EX | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `asus_rp-n53` | ASUS RP-N53 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `asus_rt-ac51u` | ASUS RT-AC51U | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `asus_rt-ac54u` | ASUS RT-AC54U | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `asus_rt-n12p` | ASUS RT-N11P/RT-N12+/RT-N12Eb1 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `asus_rt-n14u` | ASUS RT-N14u | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `bdcom_wap2100-sk` | BDCOM WAP2100-SK (ZTE ZXECS EBG3130) | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `bolt_bl100` | Bolt BL100 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `bolt_bl201` | Bolt BL201 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `buffalo_whr-1166d` | Buffalo WHR-1166D | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `buffalo_whr-300hp2` | Buffalo WHR-300HP2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `buffalo_whr-600d` | Buffalo WHR-600D | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `buffalo_wmr-300` | Buffalo WMR-300 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `comfast_cf-wr800n` | Comfast CF-WR800N | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `devolo_rac` | devolo WiFi Repeater ac | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dch-m225` | D-Link DCH-M225 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dir-510l` | D-Link DIR-510L | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dir-806a-b1` | D-Link DIR-806A B1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dir-810l` | D-Link DIR-810L | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-116-a1` | D-Link DWR-116 A1/A2 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-118-a1` | D-Link DWR-118 A1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-118-a2` | D-Link DWR-118 A2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-921-c1` | D-Link DWR-921 C1 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-921-c3` | D-Link DWR-921 C3 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-922-e2` | D-Link DWR-922 E2 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-960` | D-Link DWR-960 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dlink_dwr-961-a1` | D-Link DWR-961 A1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `domywifi_dm202` | DomyWifi DM202 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `domywifi_dm203` | DomyWifi DM203 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `domywifi_dw22d` | DomyWifi DW22D | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `dovado_tiny-ac` | Dovado Tiny AC | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `edimax_br-6208ac-v2` | Edimax BR-6208AC V2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `edimax_br-6478ac-v2` | Edimax BR-6478AC V2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `edimax_ew-7476rpc` | Edimax EW-7476RPC | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `edimax_ew-7478ac` | Edimax EW-7478AC | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `edimax_ew-7478apc` | Edimax EW-7478APC | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `elecom_wrh-300cr` | Elecom WRH-300CR | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `engenius_epg600` | EnGenius EPG600 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `engenius_esr600` | EnGenius ESR600 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `fon_fon2601` | Fon FON2601 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `glinet_gl-mt300a` | GL.iNet GL-MT300A | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `glinet_gl-mt300n` | GL.iNet GL-MT300N | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `glinet_gl-mt750` | GL.iNet GL-MT750 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `head-weblink_hdrm200` | Head Weblink HDRM2000 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `hiwifi_hc5661` | HiWiFi HC5661 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `hiwifi_hc5761` | HiWiFi HC5761 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `hiwifi_hc5861` | HiWiFi HC5861 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `hnet_c108` | HNET C108 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `hongdian_h8922-v30` | Hongdian H8922 v30 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `hootoo_ht-tm05` | HooToo HT-TM05 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `humax_e2` | HUMAX E2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `iodata_wn-ac1167gr` | I-O DATA WN-AC1167GR | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `iodata_wn-ac733gr3` | I-O DATA WN-AC733GR3 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `iptime_a1004ns` | ipTIME A1004ns | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `iptime_a104ns` | ipTIME A104ns | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `kimax_u25awf-h1` | Kimax U25AWF H1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `kimax_u35wf` | Kimax U35WF | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `kingston_mlw221` | Kingston MLW221 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `kingston_mlwg2` | Kingston MLWG2 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `lava_lr-25g001` | LAVA LR-25G001 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `lb-link_bl-w1200` | LB-Link BL-W1200 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `lenovo_newifi-y1` | Lenovo Y1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `lenovo_newifi-y1s` | Lenovo Y1S | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `linksys_e1700` | Linksys E1700 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `microduino_microwrt` | Microduino MicroWRT | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netcore_nw5212` | Netcore NW5212 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_ex2700` | NETGEAR EX2700 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_ex3700` | NETGEAR EX3700/EX3800 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_ex6120` | NETGEAR EX6120 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_ex6130` | NETGEAR EX6130 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_jwnr2010-v5` | JWNR2010 v5 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_pr2000` | PR2000 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_wn3000rp-v3` | NETGEAR WN3000RP v3 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netgear_wn3100rp-v2` | NETGEAR WN3100RP v2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `netis_wf2770` | NETIS WF2770 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `nexx_wt3020-4m` | Nexx WT3020 4M | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `nexx_wt3020-8m` | Nexx WT3020 8M | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `ohyeah_oy-0001` | Oh Yeah OY-0001 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `phicomm_k2-v22.4` | Phicomm K2 v22.4 or older | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `phicomm_k2-v22.5` | Phicomm K2 v22.5 or newer | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `phicomm_k2g` | Phicomm K2G | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `phicomm_psg1208` | Phicomm PSG1208 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `phicomm_psg1218b` | Phicomm PSG1218 Bx | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `planex_cs-qr10` | Planex CS-QR10 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `planex_db-wrt01` | Planex DB-WRT01 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `planex_mzk-750dhp` | Planex MZK-750DHP | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `planex_mzk-ex300np` | Planex MZK-EX300NP | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `planex_mzk-ex750np` | Planex MZK-EX750NP | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `ralink_mt7620a-evb` | MediaTek MT7620a EVB | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `ralink_mt7620a-mt7530-evb` | MediaTek MT7620a + MT7530 EVB | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `ralink_mt7620a-mt7610e-evb` | MediaTek MT7620a + MT7610e EVB | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `ralink_mt7620a-v22sg-evb` | MediaTek MT7620a V22SG | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `ravpower_rp-wd03` | RAVPower RP-WD03 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `rostelecom_rt-fl-1` | RT-FL-1 | mt7620 | Open Edge, Open LTS |
+| mtk/mt7620 | `rostelecom_s1010` | S1010 | mt7620 | Open Edge, Open LTS |
+| mtk/mt7620 | `sanlinking_d240` | Sanlinking Technologies D240 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `sercomm_na930` | Sercomm NA930 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `sitecom_wlr-4100-v1-002` | Sitecom WLR-4100 v1 002 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `snr_cpe-w4n-mt` | SNR CPE-W4N MT | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_archer-c2-v1` | Archer C2 v1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_archer-c20-v1` | Archer C20 v1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_archer-c20i` | Archer C20i | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_archer-c5-v4` | Archer C5 v4 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_archer-c50-v1` | Archer C50 v1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_archer-mr200` | Archer MR200 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_ec220-g5-v2` | EC220-G5 v2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_re200-v1` | RE200 v1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `tplink_re210-v1` | RE210 v1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `trendnet_tew-810dr` | TRENDnet TEW-810DR | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `trendnet_tha103ac` | TRENDnet THA-103AC | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `vonets_var11n-300` | Vonets VAR11N-300 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `wavlink_wl-wn530hg4` | Wavlink WL-WN530HG4 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `wavlink_wl-wn531g3` | Wavlink WL-WN531G3 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `wavlink_wl-wn531g3-a2` | Wavlink WL-WN531G3-A2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `wavlink_wl-wn535k1` | Wavlink WL-WN535K1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `wavlink_wl-wn579x3` | Wavlink WL-WN579X3 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `wevo_air-duo` | WeVO AIR DUO | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `wrtnode_wrtnode` | WRTNode WRTNode | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `xiaomi_miwifi-mini` | Xiaomi MiWiFi Mini | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `youku_x2` | Youku X2 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `youku_yk-l1` | Youku YK-L1 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `youku_yk-l1c` | Youku YK-L1c | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `yukai_bocco` | YUKAI Engineering BOCCO | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-ape522ii` | Zbtlink ZBT-APE522II | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-cpe102` | Zbtlink ZBT-CPE102 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-wa05` | Zbtlink ZBT-WA05 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-we1026-5g-16m` | Zbtlink ZBT-WE1026-5G 16M | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-we1026-h-32m` | Zbtlink ZBT-WE1026-H 32M | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-we2026` | Zbtlink ZBT-WE2026 | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-we826-16m` | Zbtlink ZBT-WE826 16M | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-we826-32m` | Zbtlink ZBT-WE826 32M | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-we826-e` | Zbtlink ZBT-WE826-E | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zbtlink_zbt-wr8305rt` | Zbtlink ZBT-WR8305RT | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `zte_q7` | ZTE Q7 | mt7620a | Open Edge, Open LTS |
+| mtk/mt7620 | `zyxel_keenetic-lite-iii-a` | Zyxel Keenetic Lite III A | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `zyxel_keenetic-omni` | Zyxel Keenetic Omni | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `zyxel_keenetic-omni-ii` | Zyxel Keenetic Omni II | mt7620n | Open Edge, Open LTS |
+| mtk/mt7620 | `zyxel_keenetic-viva` | Zyxel Keenetic Viva | mt7620a | Open Edge, Open LTS |
+| mtk/mt7621 | `adslr_g7` | ADSLR G7 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `afoundry_ew1200` | AFOUNDRY EW1200 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `alfa-network_ax1800rm` | ALFA Network AX1800RM | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `alfa-network_quad-e4g` | ALFA Network Quad-E4G | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ampedwireless_ally-00x19k` | Amped Wireless ALLY-00X19K | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ampedwireless_ally-r1900k` | Amped Wireless ALLY-R1900K | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `arcadyan_we410443` | Arcadyan WE410443 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `arcadyan_we420223-99` | Arcadyan WE420223-99 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asiarf_ap7621-001` | AsiaRF AP7621-001 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asiarf_ap7621-004-v3` | AsiaRF AP7621-004 v3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asiarf_ap7621-nv1` | AsiaRF AP7621-NV1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_4g-ax56` | ASUS 4G-AX56 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rp-ac56` | ASUS RP-AC56 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rp-ac87` | ASUS RP-AC87 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rt-ac57u-v1` | ASUS RT-AC57U v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rt-ac65p` | ASUS RT-AC65P | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rt-ac85p` | ASUS RT-AC85P | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rt-ac85u` | ASUS RT-AC85U | mt7621 | Open Edge |
+| mtk/mt7621 | `asus_rt-ax53u` | ASUS RT-AX53U | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rt-ax54` | ASUS RT-AX54 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `asus_rt-n56u-b1` | ASUS RT-N56U B1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `beeline_smartbox-flash` | Beeline SmartBox Flash | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `beeline_smartbox-giga` | Beeline SmartBox GIGA | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `beeline_smartbox-pro` | Beeline SmartBox PRO | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `beeline_smartbox-turbo` | Beeline SmartBox TURBO | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `beeline_smartbox-turbo-plus` | Beeline SmartBox TURBO+ | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `belkin_rt1800` | Belkin RT1800 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `bolt_arion` | BOLT Arion | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `buffalo_wsr-1166dhp` | Buffalo WSR-1166DHP | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `buffalo_wsr-2533dhpl` | Buffalo WSR-2533DHPL | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `buffalo_wsr-2533dhpl2` | Buffalo WSR-2533DHPL2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `buffalo_wsr-2533dhpls` | Buffalo WSR-2533DHPLS | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `buffalo_wsr-600dhp` | Buffalo WSR-600DHP | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `c-life_xg1` | C-Life XG1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `comfast_cf-e390ax` | COMFAST CF-E390AX | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `comfast_cf-ew72-v2` | COMFAST CF-EW72 V2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `confiabits_mt7621-v1` | Confiabits MT7621 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_ap1300-outdoor-v1` | Cudy AP1300 Outdoor v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_c200p` | Cudy C200P | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_m1300-v2` | Cudy M1300 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_m1800` | Cudy M1800 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_r700` | Cudy R700 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_wr1300-v1` | Cudy WR1300 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_wr1300-v2` | Cudy WR1300 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_wr1300-v3` | Cudy WR1300 v3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_wr2100` | Cudy WR2100 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_x6-v1` | Cudy X6 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `cudy_x6-v2` | Cudy X6 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `d-team_newifi-d2` | D-Team Newifi D2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `d-team_pbr-m1` | PandoraBox PBR-M1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_covr-x1860-a1` | D-Link COVR-X1860 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dap-1620-b1` | D-Link DAP-1620 B1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dap-x1860-a1` | D-Link DAP-X1860 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-1360-a1` | D-Link DIR-1360 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-1935-a1` | D-Link DIR-1935 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-1960-a1` | D-Link DIR-1960 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-2055-a1` | D-Link DIR-2055 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-2150-a1` | D-Link DIR-2150 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-2150-r1` | D-Link DIR-2150 R1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-2640-a1` | D-Link DIR-2640 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-2660-a1` | D-Link DIR-2660 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-3040-a1` | D-Link DIR-3040 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-3060-a1` | D-Link DIR-3060 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-853-a1` | D-Link DIR-853 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-853-a3` | D-Link DIR-853 A3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-853-r1` | D-Link DIR-853 R1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-860l-b1` | D-Link DIR-860L B1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-867-a1` | D-Link DIR-867 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-878-a1` | D-Link DIR-878 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-878-r1` | D-Link DIR-878 R1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-882-a1` | D-Link DIR-882 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-882-r1` | D-Link DIR-882 R1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dir-x1860-b1` | D-Link DIR-X1860 B1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dlink_dra-1360-a1` | D-Link DRA-1360 A1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dna_valokuitu-plus-ex400` | DNA Valokuitu Plus EX400 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `dual-q_h721` | Dual-Q H721 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `edimax_ra21s` | Edimax RA21S | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `edimax_re23s` | Edimax RE23S | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `edimax_rg21s` | Edimax Gemini AC2600 RG21S | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `edup_ep-rt2960s` | EDUP EP-RT2960S | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `edup_ep-rt2983` | EDUP EP-RT2983 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wmc-c2533gst` | ELECOM WMC-C2533GST | mt7621 | Open Edge |
+| mtk/mt7621 | `elecom_wmc-m1267gst2` | ELECOM WMC-M1267GST2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wmc-s1267gs2` | ELECOM WMC-S1267GS2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wmc-x1800gst` | ELECOM WMC-X1800GST | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-1167ghbk2-s` | ELECOM WRC-1167GHBK2-S | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-1167gs2-b` | ELECOM WRC-1167GS2-B | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-1167gst2` | ELECOM WRC-1167GST2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-1750gs` | ELECOM WRC-1750GS | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-1750gst2` | ELECOM WRC-1750GST2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-1750gsv` | ELECOM WRC-1750GSV | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-1900gst` | ELECOM WRC-1900GST | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-2533ghbk-i` | ELECOM WRC-2533GHBK-I | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-2533ghbk2-t` | ELECOM WRC-2533GHBK2-T | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-2533gs2` | ELECOM WRC-2533GS2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-2533gst` | ELECOM WRC-2533GST | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-2533gst2` | ELECOM WRC-2533GST2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wrc-x1800gs` | ELECOM WRC-X1800GS | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `elecom_wsc-x1800gs` | ELECOM WSC-X1800GS | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `etisalat_s3` | Etisalat S3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `firefly_firewrt` | Firefly FireWRT | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `gehua_ghl-r-001` | GeHua GHL-R-001 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `gemtek_wvrtm-127acn` | Gemtek WVRTM-127ACN | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `gemtek_wvrtm-130acn` | Gemtek WVRTM-130ACN | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `genexis_pulse-ex400` | Genexis Pulse EX400 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `glinet_gl-mt1300` | GL.iNet GL-MT1300 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `gnubee_gb-pc1` | GnuBee GB-PC1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `gnubee_gb-pc2` | GnuBee GB-PC2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `h3c_tx1800-plus` | H3C TX1800 Plus | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `h3c_tx1801-plus` | H3C TX1801 Plus | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `h3c_tx1806` | H3C TX1806 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `haier_har-20s2u1` | Haier HAR-20S2U1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `hanyang_hyc-g920` | Hanyang CJ-Hello HYC-G920 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `hilink_hlk-7621a-evb` | HiLink HLK-7621A evaluation board | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `hiwifi_hc5962` | HiWiFi HC5962 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `huasifei_ws1208v2` | Huasifei WS1208V2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `humax_e10` | HUMAX E10 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-ax1167gr` | I-O DATA WN-AX1167GR | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-ax1167gr2` | I-O DATA WN-AX1167GR2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-ax2033gr` | I-O DATA WN-AX2033GR | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-ax2033gr2` | I-O DATA WN-AX2033GR2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-deax1800gr` | I-O DATA WN-DEAX1800GR | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-dx1167r` | I-O DATA WN-DX1167R | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-dx1200gr` | I-O DATA WN-DX1200GR | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-dx2033gr` | I-O DATA WN-DX2033GR | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wn-gx300gr` | I-O DATA WN-GX300GR | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iodata_wnpr2600g` | I-O DATA WNPR2600G | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_a3002mesh` | ipTIME A3002MESH | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_a3004ns-dual` | ipTIME A3004NS-dual | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_a3004t` | ipTIME A3004T | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_a6004ns-m` | ipTIME A6004NS-M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_a6ns-m` | ipTIME A6ns-M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_a8004t` | ipTIME A8004T | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_ax2002m` | ipTIME AX2002MESH | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_ax2004m` | ipTIME AX2004M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `iptime_t5004` | ipTIME T5004 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `jcg_jhr-ac876m` | JCG JHR-AC876M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `jcg_q20` | JCG Q20 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `jcg_y2` | JCG Y2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `jdcloud_re-cp-02` | JDCloud RE-CP-02 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `jdcloud_re-sp-01b` | JDCloud RE-SP-01B | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `keenetic_kn-1910` | Keenetic KN-1910 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `keenetic_kn-3010` | Keenetic KN-3010 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `keenetic_kn-3510` | Keenetic KN-3510 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `lenovo_newifi-d1` | Lenovo Newifi D1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_e5600` | Linksys E5600 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_e7350` | Linksys E7350 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_ea6350-v4` | Linksys EA6350 v4 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_ea7300-v1` | Linksys EA7300 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_ea7300-v2` | Linksys EA7300 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_ea7500-v2` | Linksys EA7500 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_ea8100-v1` | Linksys EA8100 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_ea8100-v2` | Linksys EA8100 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_re6500` | Linksys RE6500 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `linksys_re7000` | Linksys RE7000 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `maginon_mc-1200ac` | Maginon MC-1200AC | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mediatek_ap-mt7621a-v60` | Mediatek AP-MT7621A-V60 EVB | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mediatek_mt7621-eval-board` | MediaTek MT7621 EVB | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `meig_slt866` | MeiG SLT866 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mercusys_mr70x-v1` | MERCUSYS MR70X v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mikrotik_ltap-2hnd` | MikroTik LtAP-2HnD | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mikrotik_routerboard-750gr3` | MikroTik RouterBOARD 750Gr3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mikrotik_routerboard-760igs` | MikroTik RouterBOARD 760iGS | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mikrotik_routerboard-m11g` | MikroTik RouterBOARD M11G | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mikrotik_routerboard-m33g` | MikroTik RouterBOARD M33G | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mofinetwork_mofi5500-5gxelte` | MoFi Network MOFI5500-5GXeLTE | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mqmaker_witi` | MQmaker WiTi | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mtc_wr1201` | MTC Wireless Router WR1201 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `mts_wg430223` | MTS WG430223 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_eax12` | NETGEAR EAX12 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_ex6150` | NETGEAR EX6150 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r6220` | NETGEAR R6220 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r6260` | NETGEAR R6260 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r6350` | NETGEAR R6350 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r6700-v2` | NETGEAR R6700 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r6800` | NETGEAR R6800 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r6850` | NETGEAR R6850 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r6900-v2` | NETGEAR R6900 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r7200` | NETGEAR R7200 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_r7450` | NETGEAR R7450 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_wac104` | NETGEAR WAC104 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_wac124` | NETGEAR WAC124 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_wax202` | NETGEAR WAX202 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_wax214v2` | NETGEAR WAX214v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netgear_wndr3700-v5` | WNDR3700 v5 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netis_n6` | netis N6 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `netis_wf2881` | NETIS WF2881 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `openfi_5pro` | OpenFi 5Pro | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `oraybox_x3a` | OrayBox X3A | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `phicomm_k2p` | Phicomm K2P | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `planex_vr500` | Planex VR500 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `plasmacloud_pax1800-lite` | Plasma Cloud PAX1800-Lite | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `raisecom_msg1500-x-00` | RAISECOM MSG1500 X.00 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `renkforce_ws-wn530hp3-a` | Renkforce WS-WN530HP3-A | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `rostelecom_rt-fe-1a` | Rostelecom RT-FE-1A | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `rostelecom_rt-sf-1` | Rostelecom RT-SF-1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ruijie_rg-ew1200g-pro-v1.1` | Ruijie RG-EW1200G PRO v1.1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ruijie_rg-ew1300g-v1` | Ruijie RG-EW1300G v1 | mt7621 | Open Edge |
+| mtk/mt7621 | `samknows_whitebox-v8` | SamKnows Whitebox 8 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `sercomm_na502` | SERCOMM NA502 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `sercomm_na502s` | SERCOMM NA502S | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `sim_simax1800t` | SIM SIMAX1800T | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `sim_simax1800u` | SIM SIMAX1800U | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `snr_snr-cpe-me1` | SNR SNR-CPE-ME1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `snr_snr-cpe-me2-lite` | SNR SNR-CPE-ME2-Lite | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `snr_snr-cpe-me2-sfp` | SNR SNR-CPE-ME2-SFP | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `storylink_sap-g3200u3` | STORYLiNK SAP-G3200U3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `telco-electronics_x1` | Telco Electronics X1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `teltonika_rutm11` | Teltonika RUTM11 | mt7621 | Open Edge |
+| mtk/mt7621 | `teltonika_rutm30` | Teltonika RUTM30 | mt7621 | Open Edge |
+| mtk/mt7621 | `teltonika_rutm50` | Teltonika RUTM50 | mt7621 | Open Edge |
+| mtk/mt7621 | `tenbay_t-mb5eu-v01` | Tenbay T-MB5EU-V01 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `thunder_timecloud` | Thunder Timecloud | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `totolink_a7000r` | TOTOLINK A7000R | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `totolink_x5000r` | TOTOLINK X5000R | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tozed_zlt-s12-pro` | TOZED ZLT S12 PRO | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_archer-a6-v3` | Archer A6 V3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_archer-ax21-v4` | Archer AX21 v4 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_archer-ax23-v1` | Archer AX23 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_archer-c6-v3` | Archer C6 V3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_archer-c6u-v1` | Archer C6U v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_deco-m4r-v4` | Deco M4R v4 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_eap235-wall-v1` | EAP235-Wall v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_eap613-v1` | EAP613 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_eap615-wall-v1` | EAP615-Wall v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_ec330-g5u-v1` | TP-Link EC330-G5u v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_er605-v2` | TP-Link ER605 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_ex220-v1` | TP-Link EX220 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_ex220-v2` | TP-Link EX220 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_mr600-v2-eu` | MR600 v2 (EU) | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_re350-v1` | RE350 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_re500-v1` | RE500 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_re650-v1` | RE650 v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_re650-v2` | RE650 v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `tplink_tl-wpa8631p-v3` | TL-WPA8631P v3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ubnt_edgerouter-x` | Ubiquiti EdgeRouter X | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ubnt_edgerouter-x-sfp` | Ubiquiti EdgeRouter X SFP | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ubnt_unifi-6-lite` | Ubiquiti UniFi U6 Lite | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ubnt_unifi-flexhd` | Ubiquiti UniFi FlexHD | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ubnt_unifi-nanohd` | Ubiquiti UniFi nanoHD | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `ubnt_usw-flex` | Ubiquiti UniFi Switch Flex | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `unielec_u7621-01-16m` | UniElec U7621-01 16M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `unielec_u7621-06-16m` | UniElec U7621-06 16M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `unielec_u7621-06-32m` | UniElec U7621-06 32M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `unielec_u7621-06-64m` | UniElec U7621-06 64M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wavlink_halo-base-pro` | Wavlink Halo Base Pro | mt7621 | Open Edge |
+| mtk/mt7621 | `wavlink_wl-wn531a6` | Wavlink WL-WN531A6 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wavlink_wl-wn533a8` | Wavlink WL-WN533A8 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wavlink_wl-wn573hx1` | Wavlink WL-WN573HX1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wavlink_ws-wn572hp3-4g` | Wavlink WS-WN572HP3 4G | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wevo_11acnas` | WeVO 11AC NAS Router | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wevo_w2914ns-v2` | WeVO W2914NS v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wifire_s1500-nbn` | WiFire S1500.NBN | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `winstars_ws-wn536p3` | Winstars WS-WN536P3 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `winstars_ws-wn583a6` | Winstars WS-WN583A6 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `wodesys_wd-r1802u` | Wodesys WD-R1802U | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-3-pro` | Xiaomi Mi Router 3 Pro | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-3g` | Xiaomi Mi Router 3G | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-3g-v2` | Xiaomi Mi Router 3G v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-4` | Xiaomi Mi Router 4 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-4a-gigabit` | Xiaomi Mi Router 4A Gigabit Edition | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-4a-gigabit-v2` | Xiaomi Mi Router 4A Gigabit Edition v2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-ac2100` | Xiaomi Mi Router AC2100 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-cr6606` | Xiaomi Mi Router CR6606 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-cr6608` | Xiaomi Mi Router CR6608 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_mi-router-cr6609` | Xiaomi Mi Router CR6609 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaomi_redmi-router-ac2100` | Xiaomi Redmi Router AC2100 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xiaoyu_xy-c5` | XiaoYu XY-C5 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `xzwifi_creativebox-v1` | CreativeBox v1 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `youhua_wr1200js` | YouHua WR1200JS | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `youku_yk-l2` | Youku YK-L2 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `yuncore_ax820` | YunCore AX820 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `yuncore_fap640` | YunCore FAP640 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `yuncore_fap690` | YunCore FAP690 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `yuncore_g720` | YunCore G720 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `z-router_zr-2660` | Z-ROUTER ZR-2660 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `z-router_zr-2662` | Z-ROUTER ZR-2662 | mt7621 | Open Edge |
+| mtk/mt7621 | `zbtlink_zbt-we1326` | Zbtlink ZBT-WE1326 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-we3526` | Zbtlink ZBT-WE3526 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg108` | Zbtlink ZBT-WG108 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg1602-16m` | Zbtlink ZBT-WG1602 16M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg1602-v04-16m` | Zbtlink ZBT-WG1602-V04 16M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg1602-v04-32m` | Zbtlink ZBT-WG1602-V04 32M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg1608-16m` | Zbtlink ZBT-WG1608 16M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg1608-32m` | Zbtlink ZBT-WG1608 32M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg2626` | Zbtlink ZBT-WG2626 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg3526-16m` | Zbtlink ZBT-WG3526 16M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zbtlink_zbt-wg3526-32m` | Zbtlink ZBT-WG3526 32M | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zio_freezio` | ZIO FREEZIO | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zte_e8820s` | ZTE E8820S | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_lte3301-plus` | Zyxel LTE3301-PLUS | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_lte5398-m904` | Zyxel LTE5398-M904 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_lte7490-m904` | Zyxel LTE7490-M904 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_nr7101` | Zyxel NR7101 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_nwa50ax` | Zyxel NWA50AX | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_nwa55axe` | Zyxel NWA55AXE | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_wap6805` | Zyxel WAP6805 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7621 | `zyxel_wsm20` | Zyxel WSM20 | mt7621 | Open Edge, Open LTS |
+| mtk/mt7622 | `asiarf_ap7622-wh1` | AsiaRF AP7622-WH1 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `bananapi_bpi-r64` | Bananapi BPi-R64 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `buffalo_wsr-2533dhp2` | Buffalo WSR-2533DHP2 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `buffalo_wsr-2533dhp3` | Buffalo WSR-2533DHP3 | mt7622 | Open Edge |
+| mtk/mt7622 | `buffalo_wsr-3200ax4s` | Buffalo WSR-3200AX4S | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `dlink_eagle-pro-ai-m32-a1` | D-Link EAGLE PRO AI M32 A1 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `dlink_eagle-pro-ai-r32-a1` | D-Link EAGLE PRO AI R32 A1 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `elecom_wrc-2533gent` | Elecom WRC-2533GENT | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `elecom_wrc-g01` | ELECOM WRC-G01 | mt7622 | Open Edge |
+| mtk/mt7622 | `elecom_wrc-x3200gst3` | ELECOM WRC-X3200GST3 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `linksys_e8450` | Linksys E8450 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `linksys_e8450-ubi` | Linksys E8450 UBI | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `mediatek_mt7622-rfb1` | MediaTek MTK7622 rfb1 AP | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `mediatek_mt7622-rfb1-ubi` | MediaTek MTK7622 rfb1 AP (UBI) | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `netgear_wax206` | NETGEAR WAX206 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `reyee_ax3200-e5` | reyee AX3200 E5 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `ruijie_rg-ew3200gx-pro` | Ruijie RG-EW3200GX PRO | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `smartrg_sdg-841-t6` | Adtran SDG-841-t6 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `totolink_a8000ru` | TOTOLINK A8000RU | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `tplink_tl-xdr3230-v1` | TP-Link TL-XDR3230 v1 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `tplink_tl-xdr3250-v1` | TP-Link TL-XDR3250 v1 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `ubnt_unifi-6-lr-v1` | Ubiquiti UniFi U6 Long-Range v1 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `ubnt_unifi-6-lr-v1-ubootmod` | Ubiquiti UniFi U6 Long-Range v1 U-Boot mod | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `ubnt_unifi-6-lr-v2` | Ubiquiti UniFi U6 Long-Range v2 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `ubnt_unifi-6-lr-v2-ubootmod` | Ubiquiti UniFi U6 Long-Range v2 U-Boot mod | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `ubnt_unifi-6-lr-v3` | Ubiquiti UniFi U6 Long-Range v3 | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `ubnt_unifi-6-lr-v3-ubootmod` | Ubiquiti UniFi U6 Long-Range v3 U-Boot mod | mt7622 | Open Edge, Open LTS |
+| mtk/mt7622 | `xiaomi_redmi-router-ax6s` | Xiaomi Redmi Router AX6S | mt7622 | Open Edge, Open LTS |
+| mtk/mt7623 | `bananapi_bpi-r2` | Bananapi BPi-R2 | mt7623 | Open Edge, Open LTS |
+| mtk/mt7623 | `unielec_u7623-02` | UniElec U7623-02 | mt7623 | Open Edge, Open LTS |
+| mtk/mt7623 | `unielec_u7623-02-emmc-512m-legacy` | UniElec U7623-02 eMMC/512MiB RAM (legacy image) | mt7623 | Open Edge, Open LTS |
+| mtk/mt7629 | `iptime_a6004mx` | ipTIME A6004MX | mt7629 | Open Edge, Open LTS |
+| mtk/mt7629 | `linksys_ea7500-v3` | Linksys EA7500 v3 | mt7629 | Open Edge, Open LTS |
+| mtk/mt7629 | `mediatek_mt7629-rfb` | MediaTek MT7629 rfb AP | mt7629 | Open Edge, Open LTS |
+| mtk/mt7629 | `netgear_ex6250-v2` | NETGEAR EX6250 v2 | mt7629 | Open Edge, Open LTS |
+| mtk/mt7629 | `tplink_eap225-v5` | TP-Link EAP225 v5 | mt7629 | Open Edge, Open LTS |
+| mtk/mt76x8 | `7links_wlr-1230` | 7Links WLR-1230 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `7links_wlr-1240` | 7Links WLR-1240 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `alfa-network_awusfree1` | ALFA Network AWUSFREE1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `asus_rt-ac1200` | ASUS RT-AC1200 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `asus_rt-ac1200-v2` | ASUS RT-AC1200 V2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `asus_rt-n10p-v3` | ASUS RT-N10P V3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `asus_rt-n11p-b1` | ASUS RT-N11P B1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `asus_rt-n12-vp-b1` | ASUS RT-N12 VP B1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `buffalo_wcr-1166ds` | Buffalo WCR-1166DS | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `comfast_cf-wr617ac` | COMFAST CF-WR617AC | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `comfast_cf-wr758ac-v1` | COMFAST CF-WR758AC V1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `comfast_cf-wr758ac-v2` | COMFAST CF-WR758AC V2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `creality_wb-01` | Creality WB-01 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `cudy_lt300-v3` | Cudy LT300 v3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `cudy_lt400e-v1` | Cudy LT400E v1 | mt76x8 | Open Edge |
+| mtk/mt76x8 | `cudy_m1200-v1` | Cudy M1200 v1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `cudy_re1200-outdoor-v1` | Cudy RE1200 Outdoor v1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `cudy_tr1200-v1` | Cudy TR1200 v1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `cudy_wr1000` | Cudy WR1000 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `cudy_wr300-v1` | Cudy WR300 v1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `d-team_pbr-d1` | PandoraBox PBR-D1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `dlink_dap-1325-a1` | D-Link DAP-1325 A1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `duzun_dm06` | DuZun DM06 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `elecom_wrc-1167fs` | ELECOM WRC-1167FS | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `glinet_gl-mt300n-v2` | GL.iNet GL-MT300N V2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `glinet_microuter-n300` | GL.iNet microuter-N300 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `glinet_vixmini` | GL.iNet VIXMINI | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hak5_wifi-pineapple-mk7` | Hak5 WiFi Pineapple Mark 7 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hilink_hlk-7628n` | HILINK HLK-7628N | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hilink_hlk-7688a` | Hi-Link HLK-7688A | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hiwifi_hc5611` | HiWiFi HC5611 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hiwifi_hc5661a` | HiWiFi HC5661A | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hiwifi_hc5761a` | HiWiFi HC5761A | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hiwifi_hc5861b` | HiWiFi HC5861B | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hongdian_h7920-v40` | Hongdian H7920 v40 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `hongdian_h8850-v20` | Hongdian H8850 v20 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `huasifei_shf283` | Huasifei SHF283 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `iptime_a3` | ipTIME A3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `iptime_a604m` | ipTIME A604M | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `jotale_js76x8-16m` | Jotale JS76x8 16M | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `jotale_js76x8-32m` | Jotale JS76x8 32M | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `jotale_js76x8-8m` | Jotale JS76x8 8M | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `keenetic_kn-1112` | Keenetic KN-1112 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `keenetic_kn-1212` | Keenetic KN-1212 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `keenetic_kn-1221` | Keenetic KN-1221 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `keenetic_kn-1510` | Keenetic KN-1510 | mt76x8 | Open Edge |
+| mtk/mt76x8 | `keenetic_kn-1613` | Keenetic KN-1613 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `keenetic_kn-1711` | Keenetic KN-1711 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `keenetic_kn-1713` | Keenetic KN-1713 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `keenetic_kn-3211` | Keenetic KN-3211 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `kroks_kndrt31r16` | Kroks Rt-Cse5 UW DRSIM | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `kroks_kndrt31r19` | Kroks Rt-Pot mXw DS RSIM | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `linksys_e5400` | Linksys E5400 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `mediatek_linkit-smart-7688` | MediaTek LinkIt Smart 7688 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `mediatek_mt7628an-eval-board` | MediaTek MT7628 EVB | mt7628 | Open Edge, Open LTS |
+| mtk/mt76x8 | `mercury_mac1200r-v2` | Mercury MAC1200R v2.0 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `mercusys_mb130-4g-v1` | MERCUSYS MB130-4G v1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `minew_g1-c` | Minew G1-C | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `motorola_mwr03` | Motorola MWR03 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `movingcomm_c120ev` | MovingComm C120EV | mt76x8 | Open Edge |
+| mtk/mt76x8 | `netgear_r6020` | R6020 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `netgear_r6080` | R6080 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `netgear_r6120` | R6120 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `onion_omega2` | Onion Omega2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `onion_omega2p` | Onion Omega2+ | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `oraybox_x1` | OrayBox X1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `qding_qc202` | Qding QC202 | mt7628 | Open Edge, Open LTS |
+| mtk/mt76x8 | `rakwireless_rak633` | Rakwireless RAK633 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `ravpower_rp-wd009` | RAVPower RP-WD009 | mt7628 | Open Edge, Open LTS |
+| mtk/mt76x8 | `skylab_skw92a` | Skylab SKW92A | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tama_w06` | Tama W06 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `teltonika_rut200` | Teltonika RUT200 v1-v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `teltonika_rut241` | Teltonika RUT241 v1-v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `teltonika_rut976` | Teltonika RUT976 | mt7628 | Open Edge, Open LTS |
+| mtk/mt76x8 | `teltonika_rut9x1` | Teltonika RUT951 | mt7628 | Open Edge, Open LTS |
+| mtk/mt76x8 | `teltonika_rut9x6` | Teltonika RUT956 | mt7628 | Open Edge, Open LTS |
+| mtk/mt76x8 | `totolink_a3` | TOTOLINK A3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `totolink_lr1200` | TOTOLINK LR1200 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_archer-c20-v4` | Archer C20 v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_archer-c20-v5` | Archer C20 v5 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_archer-c50-v3` | Archer C50 v3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_archer-c50-v4` | Archer C50 v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_archer-c50-v6` | Archer C50 v6 (CA/EU/RU) | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_archer-mr200-v5` | Archer MR200 v5 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_archer-mr200-v6` | Archer MR200 v6 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re200-v2` | RE200 v2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re200-v3` | RE200 v3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re200-v4` | RE200 v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re205-v3` | RE205 v3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re220-v2` | RE220 v2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re305-v1` | RE305 v1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re305-v3` | RE305 v3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_re365-v1` | RE365 v1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-mr3020-v3` | TL-MR3020 v3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-mr3420-v5` | TL-MR3420 v5 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-mr6400-v4` | TL-MR6400 v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-mr6400-v5` | TL-MR6400 v5 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-mr6400-v7` | TL-MR6400 v7 | mt76x8 | Open Edge |
+| mtk/mt76x8 | `tplink_tl-wa801nd-v5` | TL-WA801ND v5 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr802n-v4` | TL-WR802N v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr840n-v4` | TL-WR840N v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr840n-v5` | TL-WR840N v5 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr841n-v13` | TL-WR841N v13 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr841n-v14` | TL-WR841N v14 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr842n-v5` | TL-WR842N v5 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr850n-v2` | TL-WR850N v2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr902ac-v3` | TL-WR902AC v3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `tplink_tl-wr902ac-v4` | TL-WR902AC v4 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `unielec_u7628-01-16m` | UniElec U7628-01 16M | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `vocore_vocore2` | VoCore VoCore2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `vocore_vocore2-lite` | VoCore VoCore2-Lite | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wavlink_wl-wn531a3` | Wavlink WL-WN531A3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wavlink_wl-wn570ha1` | Wavlink WL-WN570HA1 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wavlink_wl-wn570ha2` | Wavlink WL-WN570HA2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wavlink_wl-wn575a3` | Wavlink WL-WN575A3 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wavlink_wl-wn576a2` | Wavlink WL-WN576A2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wavlink_wl-wn577a2` | Wavlink WL-WN577A2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wavlink_wl-wn578a2` | Wavlink WL-WN578A2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `widora_neo-16m` | Widora Widora-NEO 16M | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `widora_neo-32m` | Widora Widora-NEO 32M | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wiznet_wizfi630s` | WIZnet WizFi630S | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wodesys_wd-r1208u` | Wodesys WD-R1208U | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wrtnode_wrtnode2p` | WRTnode WRTnode 2P | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `wrtnode_wrtnode2r` | WRTnode WRTnode 2R | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_mi-ra75` | Xiaomi MiWiFi Range Extender AC1200 RA75 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_mi-router-4a-100m` | Xiaomi Mi Router 4A 100M Edition | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_mi-router-4a-100m-intl` | Xiaomi Mi Router 4A 100M International Edition | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_mi-router-4a-100m-intl-v2` | Xiaomi Mi Router 4A 100M International Edition V2 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_mi-router-4c` | Xiaomi Mi Router 4C | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_miwifi-3a` | Xiaomi MiWiFi 3A | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_miwifi-3c` | Xiaomi MiWiFi 3C | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `xiaomi_miwifi-nano` | Xiaomi MiWiFi Nano | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `yuncore_1200f` | Yuncore 1200F | mt76x8 | Open Edge |
+| mtk/mt76x8 | `yuncore_cpe200` | Yuncore CPE200 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `yuncore_m300` | Yuncore M300 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `zbtlink_zbt-we1226` | Zbtlink ZBT-WE1226 | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `zbtlink_zbt-we2426-b` | Zbtlink ZBT-WE2426-B | mt76x8 | Open Edge, Open LTS |
+| mtk/mt76x8 | `zyxel_keenetic-extra-ii` | Zyxel Keenetic Extra II | mt76x8 | Open Edge, Open LTS |
+| qcom/ipq50xx | `cmcc_mr3000d-ci` | CMCC MR3000D-CI | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `cmcc_pz-l8` | CMCC PZ-L8 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `elecom_wrc-x3000gs2` | ELECOM WRC-X3000GS2 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `elecom_wrc-x3000gst2` | ELECOM WRC-X3000GST2 | ipq5018 | Open Edge |
+| qcom/ipq50xx | `iodata_wn-dax3000gr` | I-O DATA WN-DAX3000GR | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq50xx | `linksys_mx6200` | Linksys MX6200 | ipq5018 | Open Edge, Open LTS |
+| qcom/ipq60xx | `8devices_mango-dvk` | 8devices Mango-DVK | ipq6010 | Open Edge, Open LTS, Pro Edge, Pro LTS |
+| qcom/ipq807x | `zyxel_nwa110ax` | Zyxel NWA110AX | ipq8070 | Open Edge, Pro Edge |
+| qcom/ipq807x | `zyxel_nwa210ax` | ZYXEL NWA210AX | ipq8071 | Open LTS, Pro LTS |
+| qcom/ipq807x | `zyxel_nwa210ax` | Zyxel NWA210AX | ipq8071 | Open Edge, Pro Edge |
+| qcom/ipq95xx | `qcom_rdp433` | Qualcomm Technologies, Inc. RDP433 AP-AL02-C4 | ipq9574 | Open Edge, Open LTS |
