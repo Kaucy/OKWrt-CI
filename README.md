@@ -34,8 +34,8 @@ okwrt-mediatek-filogic-open-edge-core-part3--immortalwrt-mediatek-filogic-cudy_t
 |---|---|---|
 | **Core** | LuCI、Firewall4、dnsmasq-full、DDNS、UPnP、ttyd、iperf3、tcpdump 与常用诊断工具 | 所有设备 |
 | **Standard** | Core + NetSpeedTest、OpenClash/Mihomo、HomeProxy、PassWall2、daed、Tailscale、ZeroTier、Socat、MWAN3 | ARM64 且固件空间充足的设备 |
-| **Standard USB** | Standard + USB 存储/网卡/串口/4G/5G、Samba4、Diskman、QModem | 仅有 USB 的设备 |
-| **Ultra** | Standard USB + Docker、containerd、Dockerman | 仅有 USB 且大内存的设备 |
+| **Standard USB** | Standard + USB 存储/网卡/串口/4G/5G、Samba4、Diskman、QModem | 具备 USB 的设备 |
+| **Ultra** | Standard USB + Docker、containerd、Dockerman | 具备 USB 且大内存的设备 |
 
 ## 设备支持
 
