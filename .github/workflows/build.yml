@@ -29,7 +29,8 @@ permissions:
 
 concurrency:
   group: okwrt-${{ github.ref }}
-  cancel-in-progress: false
+  # 修复提交应立即替换已知失败的旧矩阵，避免继续消耗数小时 Runner。
+  cancel-in-progress: true
 
 env:
   TZ: Asia/Shanghai
