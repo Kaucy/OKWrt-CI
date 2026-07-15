@@ -17,7 +17,7 @@
 | **Open** | 开源驱动 + 稳定分支 | 开源驱动 + 开发分支 | 重视开放性、可维护性和标准 OpenWrt 体验 |
 | **Pro** | 厂商加速栈 + 稳定分支/验证点 | 厂商加速栈 + 最新验证点 | 需要 Qualcomm NSS 或 MediaTek SDK/闭源驱动能力 |
 
-- **LTS**：跟随固定稳定分支，变更较少，优先推荐日常使用。
+- **LTS**：跟随固定稳定分支，变更较少，优先推荐日常使用。Qualcomm Open 暂为例外，原因见[上游仓库](#上游仓库)。
 - **Edge**：跟随开发分支，较早获得新内核、新驱动和设备修复，也更可能遇到回归。
 - **Open 与 Pro 不建议保留配置互刷**。升级前请备份，切换产品线时建议恢复默认配置。
 
@@ -52,15 +52,20 @@ mtk-open-edge-core-cudy_tr3000-v1
 
 ## 上游仓库
 
-构建只引用自己的 Fork；每个任务开始时会获取对应原始上游的同名分支，并在本次工作区同步到最新提交。Fork 与上游提交 SHA 都会写入构建元数据。
+构建只引用自己的 Fork；每个任务开始时会获取对应原始上游的分支，并在本次工作区同步到最新提交。Fork 与上游提交 SHA 都会写入构建元数据。
 
 | 平台/产品线 | 构建 Fork | 原始上游 | LTS | Edge |
 |---|---|---|---|---|
-| Qualcomm Open / Pro | [Kaucy/LibWrt](https://github.com/Kaucy/LibWrt) | [LiBwrt/openwrt-6.x](https://github.com/LiBwrt/openwrt-6.x) | `25.12-nss` | `main-nss` |
+| Qualcomm Open | [Kaucy/immortalwrt](https://github.com/Kaucy/immortalwrt) | [immortalwrt/immortalwrt](https://github.com/immortalwrt/immortalwrt) | `master`（暂时） | `master` |
+| Qualcomm Pro | [Kaucy/LibWrt](https://github.com/Kaucy/LibWrt) | [LiBwrt/openwrt-6.x](https://github.com/LiBwrt/openwrt-6.x) | `25.12-nss` | `main-nss` |
 | MediaTek Open | [Kaucy/immortalwrt](https://github.com/Kaucy/immortalwrt) | [immortalwrt/immortalwrt](https://github.com/immortalwrt/immortalwrt) | `openwrt-25.12` | `master` |
 | MediaTek Pro | [Kaucy/immortalwrt-mt798x-rebase](https://github.com/Kaucy/immortalwrt-mt798x-rebase) | [chasey-dev/immortalwrt-mt798x-rebase](https://github.com/chasey-dev/immortalwrt-mt798x-rebase) | `25.12` | `25.12` 最新验证点 |
 
-Qualcomm Open 与 Pro 共用 LibWrt 源码树：Open 配置禁用 NSS，Pro 启用 NSS 数据面、ECM、加密与 Wi-Fi 加速组件。MediaTek Pro 使用 SDK/闭源驱动栈，因此保留 **Pro** 标识。
+Qualcomm Open 与 MediaTek Open 共用 ImmortalWrt 源码树，但分别选择 Qualcomm IPQ60xx 与 MediaTek Filogic 目标。Qualcomm Open 保留开源的 `qca-nss-dp` 以太网数据面驱动，同时禁用 NSS 核心加速、ECM、加密和 NSS 固件；Qualcomm Pro 则使用 LibWrt 的 NSS 数据面、ECM、加密与 Wi-Fi 加速组件。
+
+目前 ImmortalWrt 的 `openwrt-25.12` 分支尚未包含 `jdcloud_re-cs-02`，因此 Qualcomm Open 的 LTS 与 Edge 暂时都跟随 `master`。在稳定分支补齐该设备前，两者可能使用相同的源码版本，LTS 标签不代表独立的稳定源码分支。
+
+MediaTek Pro 使用 SDK/闭源驱动栈，因此保留 **Pro** 标识。
 
 ## 构建与发布
 
