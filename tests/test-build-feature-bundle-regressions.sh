@@ -16,6 +16,8 @@ grep -Fq 'ln -s /usr/bin/openssl staging_dir/host/bin/openssl' "$bundle"
 grep -Fq 'make package/feeds/packages/daed/compile -j1 V=s' "$bundle"
 grep -Fq 'make package/mtk/drivers/mt_wifi/clean' "$bundle"
 grep -Fq 'make package/mtk/drivers/mt_wifi/compile -j1 V=s' "$bundle"
+grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --max-size=1G' "$bundle"
+grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --cleanup' "$bundle"
 grep -Fq 'rm -f "$out/sha256sums" "$out/SHA256SUMS"' "$bundle"
 grep -Fxq 'CONFIG_PACKAGE_kmod-ipt-nat=y' "$mtk_config"
 

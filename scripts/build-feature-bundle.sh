@@ -63,9 +63,11 @@ if ((setup_status != 0)); then
 fi
 rm -f "$setup_log"
 
-# OpenWrt 默认允许 ccache 持续增长；多功能集顺序构建时必须设上限，避免
-# 调试信息/BTF 变化产生的两套对象占满 GitHub runner。
-CCACHE_DIR="$topdir/.ccache" ccache --max-size=5G
+# OpenWrt 默认允许 ccache 持续增长；多功能集顺序构建时必须严格设限，
+# 并立即裁剪 Actions 恢复的旧缓存。否则首个 Ultra 变种还没结束，缓存
+# 与完整工具链就可能耗尽 runner 根分区，连 Actions 自身日志都无法写入。
+CCACHE_DIR="$topdir/.ccache" ccache --max-size=1G
+CCACHE_DIR="$topdir/.ccache" ccache --cleanup
 
 # 先构建最高功能集，使内核模块全集一次生成。OpenWrt 的内核编译 stamp
 # 不会因为后续功能集新增 kmod 自动失效；从 Core 向上构建会出现模块已被
