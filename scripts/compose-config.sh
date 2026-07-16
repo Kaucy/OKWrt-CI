@@ -13,6 +13,10 @@ soc="${8:-all}"
 {
   printf 'CONFIG_TARGET_%s=y\n' "$target"
   printf 'CONFIG_TARGET_%s_%s=y\n' "$target" "$subtarget"
+  # Device profiles live behind the target profile choice.  Without selecting
+  # MULTI_PROFILE, every DEVICE_=y line replaces the previous choice and
+  # defconfig silently keeps only the last device in a bundle.
+  printf 'CONFIG_TARGET_MULTI_PROFILE=y\n'
   for device in $devices; do
     printf 'CONFIG_TARGET_%s_%s_DEVICE_%s=y\n' "$target" "$subtarget" "$device"
   done

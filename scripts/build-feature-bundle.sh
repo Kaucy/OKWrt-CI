@@ -123,6 +123,13 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         make tools/meson/clean
         make tools/meson/compile -j1 V=s
       fi
+      # APK key generation runs before the normal world build has populated
+      # host/bin.  The runner OpenSSL implements the required ec/ecparam CLI,
+      # so stage it just like GNU sed when the cached path is absent.
+      if [[ ! -x staging_dir/host/bin/openssl ]]; then
+        mkdir -p staging_dir/host/bin
+        ln -s /usr/bin/openssl staging_dir/host/bin/openssl
+      fi
       # daed 的 Go/eBPF/前端构建错误在并行 world 日志中只显示一行摘要。
       # 先单独构建可得到完整错误，并让后续 world 直接复用成功结果。
       make package/feeds/packages/daed/compile -j1 V=s
