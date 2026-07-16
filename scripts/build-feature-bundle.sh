@@ -67,7 +67,11 @@ rm -f "$setup_log"
 # 调试信息/BTF 变化产生的两套对象占满 GitHub runner。
 CCACHE_DIR="$topdir/.ccache" ccache --max-size=5G
 
-for feature in "${features[@]}"; do
+# 先构建最高功能集，使内核模块全集一次生成。OpenWrt 的内核编译 stamp
+# 不会因为后续功能集新增 kmod 自动失效；从 Core 向上构建会出现模块已被
+# 选中但对应 .ko 尚未生成（例如 sha256-arm64.ko）的假性缺失。
+for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); do
+  feature="${features[$feature_index]}"
   selected=()
   for device in $devices; do
     (( ranks[$feature] <= ranks[${maximum[$device]}] )) && selected+=("$device")

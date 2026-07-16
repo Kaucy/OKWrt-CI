@@ -28,11 +28,21 @@ if [[ "$platform:$edition" == mtk:pro ]]; then
       # choice unset builds conninfra.ko without the platform OF match table
       # (apconninfra_of_ids) and fails at modpost.
       printf '%s\n' \
-        "CONFIG_MTK_CHIP_${soc^^}=y" \
+        '# CONFIG_MTK_FIRST_IF_NONE is not set' \
+        "CONFIG_MTK_FIRST_IF_${soc^^}=y" \
+        'CONFIG_MTK_SECOND_IF_NONE=y' \
+        'CONFIG_MTK_THIRD_IF_NONE=y' \
         'CONFIG_MTK_CONNINFRA_APSOC=y' \
         "CONFIG_MTK_CONNINFRA_APSOC_${soc^^}=y" \
         'CONFIG_WARP_VERSION=2' \
         "CONFIG_WARP_CHIPSET=\"$soc\"" >> "$topdir/.config"
+
+      # 上游 WARP 只在识别到内核 HNAT 宏时编译 tuple helpers，但 OpenWrt
+      # 将 HNAT 作为 kmod 构建时，该宏没有传入厂商外部模块的编译环境。
+      # WARP 已硬依赖 kmod-mediatek_hnat，故在厂商模块内显式声明是安全的。
+      install -m 0644 \
+        "$GITHUB_WORKSPACE/patches/mtk/010-warp-openwrt-hnat-module.patch" \
+        "$topdir/package/mtk/drivers/warp/patches/010-warp-openwrt-hnat-module.patch"
       ;;
     *) echo "Unsupported MediaTek Pro SoC: $soc" >&2; exit 1 ;;
   esac
