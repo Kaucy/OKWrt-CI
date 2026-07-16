@@ -124,8 +124,13 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
 
     test -d "$target_dir"
     find "$target_dir" -maxdepth 1 -type f -exec cp {} "$out/" \;
+    # 只有真正可刷写的 factory/sysupgrade/combined 镜像才算固件；
+    # kernel.bin、initramfs、preloader 等辅助文件不能让完整性检查误通过。
     find "$out" -maxdepth 1 -type f \
-      \( -name '*.bin' -o -name '*.itb' -o -name '*.ubi' -o -name '*.img.gz' \) \
+      \( -name '*-sysupgrade.bin' -o -name '*-factory.bin' \
+         -o -name '*-sysupgrade.itb' -o -name '*-factory.itb' \
+         -o -name '*-sysupgrade.ubi' -o -name '*-factory.ubi' \
+         -o -name '*-combined*.img.gz' \) \
       -print -quit | grep -q .
   ) 2>&1 | tee "$log"
   status=${PIPESTATUS[0]}
@@ -143,6 +148,14 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
 
   printf '%s\n' \
     "variant=$variant" \
+    "platform=$platform" \
+    "target=$target" \
+    "subtarget=$subtarget" \
+    "edition=$edition" \
+    "channel=$channel" \
+    "feature_set=$feature" \
+    "soc=$soc" \
+    "chunk=$chunk" \
     "fork_sha=$FORK_SHA" \
     "upstream_sha=$UPSTREAM_SHA" \
     "source_branch=$SOURCE_BRANCH" \

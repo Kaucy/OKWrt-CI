@@ -172,38 +172,49 @@ jobs:
           merge-multiple: false
       - name: Prepare release files
         env:
-          SHARD: ${{ inputs.platform }}-${{ inputs.edition }}
           BUILD_RESULT: ${{ needs.build.result }}
         run: |
           chmod +x scripts/*.sh
-          scripts/release-notes.sh release-notes.md
-          printf '\n## 本次构建状态\n\n- 当前分片：`%s`\n- 构建结果：`%s`\n- 四个分片会逐步汇总到同一个 Release。\n' \
-            "$SHARD" "$BUILD_RESULT" >> release-notes.md
-          # GitHub Release asset names are case-insensitive.  OpenWrt's
-          # lowercase sha256sums collides with the bundle-level SHA256SUMS.
-          find release-assets -type f -name sha256sums -delete
-          find release-assets -type f -print0 | while IFS= read -r -d '' file; do
-            dir="$(basename "$(dirname "$file")")"
-            base="$(basename "$file")"
-            mv "$file" "release-assets/okwrt-${dir}--${base}"
-          done
-          find release-assets -mindepth 1 -type d -empty -delete
-          (cd release-assets && sha256sum -- * > "OKWRT-$SHARD-SHA256SUMS")
+          scripts/prepare-release-assets.sh release-assets publish
+          test -n "$(find publish -mindepth 1 -type f -print -quit)" || {
+            echo 'No publishable firmware was produced; skip Release creation.' >&2
+            exit 0
+          }
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: okwrt-${{ github.sha }}
+          PLATFORM: ${{ inputs.platform }}
+          EDITION: ${{ inputs.edition }}
+          BUILD_RESULT: ${{ needs.build.result }}
         run: |
-          # 四个分片可能同时首次创建同一 Release；失败的一方等待另一方创建完成。
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --target "$GITHUB_SHA" \
-              --title "OK-Wrt $GITHUB_SHA" --notes-file release-notes.md --latest || true
-          fi
-          for attempt in 1 2 3 4 5; do
-            gh release view "$TAG" >/dev/null 2>&1 && break
-            sleep 5
+          case "$PLATFORM" in
+            qcom) platform_title='Qualcomm' ;;
+            mtk) platform_title='MediaTek' ;;
+            *) echo "Unknown platform: $PLATFORM" >&2; exit 1 ;;
+          esac
+          case "$EDITION" in
+            open) edition_title='Open' ;;
+            pro) edition_title='Pro' ;;
+            *) echo "Unknown edition: $EDITION" >&2; exit 1 ;;
+          esac
+
+          shopt -s nullglob
+          for channel_dir in publish/*; do
+            [[ -d "$channel_dir" ]] || continue
+            channel="$(basename "$channel_dir")"
+            channel_title="${channel^^}"
+            tag="okwrt-$PLATFORM-$EDITION-$channel-$GITHUB_SHA"
+            title="OK-Wrt $platform_title $edition_title · $channel_title · ${GITHUB_SHA::7}"
+            notes="release-notes-$channel.md"
+            scripts/release-notes.sh "$notes"
+            printf '\n## 本 Release 分类\n\n- 平台：`%s`\n- 产品线：`%s`\n- 通道：`%s`\n- 构建结果：`%s`\n' \
+              "$platform_title" "$edition_title" "$channel_title" "$BUILD_RESULT" >> "$notes"
+
+            if ! gh release view "$tag" >/dev/null 2>&1; then
+              gh release create "$tag" --target "$GITHUB_SHA" \
+                --title "$title" --notes-file "$notes" --latest=false
+            fi
+            gh release upload "$tag" "$channel_dir"/* --clobber
+            gh release edit "$tag" --title "$title" \
+              --notes-file "$notes"
           done
-          gh release view "$TAG" >/dev/null
-          gh release upload "$TAG" release-assets/* --clobber
-          gh release edit "$TAG" --title "OK-Wrt $GITHUB_SHA" \
-            --notes-file release-notes.md --latest

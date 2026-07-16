@@ -6,7 +6,7 @@
 >
 > 首次登录后请立即修改管理密码和无线密码。
 
-[下载最新 Release](../../releases/latest) · [查看全部 Release](../../releases) · [版本怎么选](#版本矩阵) · [功能集](#功能集) · [完整设备目录](DEVICES.md) · [上游仓库](#上游仓库)
+[下载 Release](../../releases) · [版本怎么选](#版本矩阵) · [固件文件怎么选](#release-分类与固件格式) · [功能集](#功能集) · [完整设备目录](DEVICES.md) · [上游仓库](#上游仓库)
 
 ## 版本矩阵
 
@@ -21,12 +21,20 @@
 - **Edge**：跟随开发分支，较早获得新内核、新驱动和设备修复，也更可能遇到回归。
 - **Open 与 Pro 不建议保留配置互刷**。升级前请备份，切换产品线时建议恢复默认配置。
 
-Release 资产按 `目标-子目标-产品线-通道-功能集-分块--上游固件名` 组织，上游固件名保留设备代号，例如：
+## Release 分类与固件格式
+
+Release 按 **平台 + 产品线 + 通道** 独立发布，例如 `Qualcomm Open · LTS`、`MediaTek Pro · Edge`，不再把四条构建线堆在同一个 Release。Release 内按功能集前缀排序，并保留上游设备代号：
 
 ```text
-okwrt-qualcommax-ipq60xx-pro-lts-ultra-part1--immortalwrt-qualcommax-ipq60xx-jdcloud_re-cs-02-squashfs-sysupgrade.bin
-okwrt-mediatek-filogic-open-edge-core-part3--immortalwrt-mediatek-filogic-cudy_tr3000-v1-squashfs-sysupgrade.bin
+ultra--immortalwrt-qualcommax-ipq60xx-jdcloud_re-cs-02-squashfs-sysupgrade.bin
+standard--immortalwrt-mediatek-filogic-cudy_tr3000-v1-squashfs-sysupgrade.bin
+standard--immortalwrt-mediatek-filogic-xiaomi_redmi-router-ax6000-ubootmod-squashfs-sysupgrade.itb
 ```
+
+- `.bin` 和 `.itb` 都会保留；具体格式由设备上游 profile 决定，并非每台设备同时提供两种。
+- `sysupgrade` 用于从兼容 OpenWrt 升级；`factory` 仅用于设备安装说明明确支持的原厂刷入场景。
+- `.ubi` 与 `combined.img.gz` 仅在上游将其定义为可刷写 factory/sysupgrade/磁盘镜像时发布。
+- Release 只保留可刷写固件和按功能集生成的 `SHA256SUMS`；配置、buildinfo、profiles、裸 kernel、initramfs 和失败日志只留在 Actions artifact 中。
 
 ## 功能集
 
@@ -74,7 +82,7 @@ MediaTek Pro 使用 SDK/闭源驱动栈，目前只为闭源 `mt_wifi` 支持的
 | Build MediaTek Open | MediaTek Open LTS/Edge | 周一 03:30 |
 | Build MediaTek Pro | MediaTek Pro LTS/Edge | 周一 03:45 |
 
-- 四个工作流的成功资产按同一个 OK-Wrt 提交汇总到同一 Release；某个分片失败不会阻止其他分片或已完成固件发布。
+- 四个工作流分别按平台、Open/Pro 与 LTS/Edge 发布；某个分片失败不会阻止其他产品线或已完成固件发布。
 - 单个 Bundle 中某个高功能集失败时，已经完成的较低功能集仍会上传，便于下载和针对失败变种重试。
 - 当前完整矩阵为 **48 个 Bundle Job**，替代原先按功能集拆分的 117 个 Job。
 - `config/devices.tsv` 是 CI 的设备/版本/功能集数据源，`DEVICES.md` 由同一清单生成。
