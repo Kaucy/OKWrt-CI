@@ -104,7 +104,7 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
     make download -j8
     find dl -type f -size -1024c -print -delete
     if [[ "$feature" != core ]]; then
-      # Some upstream config transitions remove the staged GNU sed wrapper
+      # Some upstream feature transitions remove the staged GNU sed wrapper
       # while retaining host-package stamps. Lua's host build then tries the
       # missing path and daed fails before compiling. The system GNU sed is
       # compatible with the staged tool contract, so restore the path when
