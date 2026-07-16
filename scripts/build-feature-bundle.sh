@@ -104,6 +104,15 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
     make download -j8
     find dl -type f -size -1024c -print -delete
     if [[ "$feature" != core ]]; then
+      # Some upstream config transitions remove the staged GNU sed wrapper
+      # while retaining host-package stamps. Lua's host build then tries the
+      # missing path and daed fails before compiling. The system GNU sed is
+      # compatible with the staged tool contract, so restore the path when
+      # necessary instead of rebuilding the complete host toolchain.
+      if [[ ! -x staging_dir/host/bin/sed ]]; then
+        mkdir -p staging_dir/host/bin
+        ln -s /usr/bin/sed staging_dir/host/bin/sed
+      fi
       # daed 的 Go/eBPF/前端构建错误在并行 world 日志中只显示一行摘要。
       # 先单独构建可得到完整错误，并让后续 world 直接复用成功结果。
       make package/feeds/packages/daed/compile -j1 V=s
@@ -145,6 +154,11 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
     continue
   fi
   rm -f "$log"
+
+  # Upstream targets ship a lowercase sha256sums file. GitHub artifact paths
+  # are case-insensitive, so keeping it beside our authoritative SHA256SUMS
+  # causes an upload collision even though Linux accepts both names.
+  rm -f "$out/sha256sums" "$out/SHA256SUMS"
 
   printf '%s\n' \
     "variant=$variant" \
