@@ -113,6 +113,16 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         mkdir -p staging_dir/host/bin
         ln -s /usr/bin/sed staging_dir/host/bin/sed
       fi
+      # Actions caches can also retain host-tool stamps after Meson's staged
+      # templates were removed. Reinstall that small host tool atomically;
+      # copying only the currently missing template would leave the cache in
+      # an unknown state and can fail again on the next Meson consumer.
+      if [[ ! -f staging_dir/host/bin/meson.py \
+         || ! -f staging_dir/host/lib/meson/openwrt-native.txt.in \
+         || ! -f staging_dir/host/lib/meson/openwrt-cross.txt.in ]]; then
+        make tools/meson/clean
+        make tools/meson/compile -j1 V=s
+      fi
       # daed 的 Go/eBPF/前端构建错误在并行 world 日志中只显示一行摘要。
       # 先单独构建可得到完整错误，并让后续 world 直接复用成功结果。
       make package/feeds/packages/daed/compile -j1 V=s
@@ -124,6 +134,7 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         # 完整构建已生成 host 工具；此时再串行重试厂商底层驱动，既可
         # 输出明确错误，也能修复部分厂商 Makefile 的并行竞态。
         make package/mtk/drivers/conninfra/compile -j1 V=s
+        make package/mtk/drivers/mt_wifi/compile -j1 V=s
         make package/mtk/drivers/warp/compile -j1 V=s
         make -j"$(nproc)"
       else
