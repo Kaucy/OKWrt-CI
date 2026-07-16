@@ -130,23 +130,30 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         mkdir -p staging_dir/host/bin
         ln -s /usr/bin/openssl staging_dir/host/bin/openssl
       fi
-      # daed 的 Go/eBPF/前端构建错误在并行 world 日志中只显示一行摘要。
-      # 先单独构建可得到完整错误，并让后续 world 直接复用成功结果。
-      make package/feeds/packages/daed/compile -j1 V=s
     fi
     target_dir="$topdir/bin/targets/$target/$subtarget"
     rm -rf "$target_dir"
     if ! make -j"$(nproc)"; then
+      recovery_attempted=false
+      if [[ "$feature" != core ]]; then
+        # world 会先准备完整工具链；只有它失败后才串行重试 daed，避免
+        # 在 libgcc、Ninja 等依赖尚未生成时把诊断构建本身变成故障源。
+        make package/feeds/packages/daed/compile -j1 V=s
+        recovery_attempted=true
+      fi
       if [[ "$platform:$edition" == "mtk:pro" ]]; then
-        # 完整构建已生成 host 工具；此时再串行重试厂商底层驱动，既可
-        # 输出明确错误，也能修复部分厂商 Makefile 的并行竞态。
+        # 厂商驱动可能在失败前写入 .built；先清理依赖链，再串行重建，
+        # 否则重试会直接进入打包并误报 mt_wifi.ko 缺失。
+        make package/mtk/drivers/warp/clean
+        make package/mtk/drivers/mt_wifi/clean
+        make package/mtk/drivers/conninfra/clean
         make package/mtk/drivers/conninfra/compile -j1 V=s
         make package/mtk/drivers/mt_wifi/compile -j1 V=s
         make package/mtk/drivers/warp/compile -j1 V=s
-        make -j"$(nproc)"
-      else
-        exit 1
+        recovery_attempted=true
       fi
+      $recovery_attempted || exit 1
+      make -j"$(nproc)"
     fi
 
     test -d "$target_dir"
