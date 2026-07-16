@@ -5,6 +5,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 bundle="$root/scripts/build-feature-bundle.sh"
 compose="$root/scripts/compose-config.sh"
 mtk_config="$root/config/edition/mtk-pro.config"
+standard_usb_config="$root/config/features/standard-usb.config"
 
 # Keep the smoke checks cheap: these assertions cover the three CI regressions
 # before a multi-hour firmware build is started.
@@ -24,6 +25,11 @@ grep -Fq 'rm -f "$out/sha256sums" "$out/SHA256SUMS"' "$bundle"
 grep -Fxq 'CONFIG_MTK_MT_WIFI=m' "$mtk_config"
 grep -Fxq 'CONFIG_MTK_WIFI_MODE_AP=m' "$mtk_config"
 grep -Fxq 'CONFIG_MTK_MT_AP_SUPPORT=m' "$mtk_config"
+grep -Fxq 'CONFIG_MTK_DOT11K_RRM_SUPPORT=y' "$mtk_config"
+grep -Fxq 'CONFIG_MTK_WPA3_SUPPORT=y' "$mtk_config"
+grep -Fxq 'CONFIG_PACKAGE_luci-app-qmodem_INCLUDE_generic-qmi-wwan=y' "$standard_usb_config"
+grep -Fxq '# CONFIG_PACKAGE_luci-app-qmodem_INCLUDE_vendor-qmi-wwan is not set' "$standard_usb_config"
+grep -Fxq '# CONFIG_PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan is not set' "$standard_usb_config"
 grep -Fxq 'CONFIG_PACKAGE_kmod-ipt-nat=y' "$mtk_config"
 
 world_line="$(grep -nF 'if ! make -j"$(nproc)"; then' "$bundle" | cut -d: -f1)"
