@@ -19,6 +19,8 @@ grep -Fq 'make package/mtk/drivers/mt_wifi/compile -j1 V=s' "$bundle"
 grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --max-size=1G' "$bundle"
 grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --cleanup' "$bundle"
 grep -Fq 'rm -f "$out/sha256sums" "$out/SHA256SUMS"' "$bundle"
+grep -Fxq 'CONFIG_MTK_WIFI_MODE_AP=y' "$mtk_config"
+grep -Fxq 'CONFIG_MTK_MT_AP_SUPPORT=y' "$mtk_config"
 grep -Fxq 'CONFIG_PACKAGE_kmod-ipt-nat=y' "$mtk_config"
 
 world_line="$(grep -nF 'if ! make -j"$(nproc)"; then' "$bundle" | cut -d: -f1)"
