@@ -159,9 +159,12 @@ jobs:
           fi
 
   release:
-    name: Publish available firmware
+    name: Publish complete firmware catalog
     needs: [matrix, build]
-    if: ${{ always() && needs.matrix.result == 'success' && needs.build.result != 'cancelled' }}
+    # Smoke and partial/failed matrices stay in Actions artifacts.  A public
+    # Release must be a complete catalog so users never see a misleading
+    # one-device or one-feature download page.
+    if: ${{ always() && inputs.scope == 'all' && needs.matrix.result == 'success' && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -203,18 +206,31 @@ jobs:
             [[ -d "$channel_dir" ]] || continue
             channel="$(basename "$channel_dir")"
             channel_title="${channel^^}"
-            tag="okwrt-$PLATFORM-$EDITION-$channel-$GITHUB_SHA"
-            title="OK-Wrt $platform_title $edition_title · $channel_title · ${GITHUB_SHA::7}"
-            notes="release-notes-$channel.md"
-            scripts/release-notes.sh "$notes"
-            printf '\n## 本 Release 分类\n\n- 平台：`%s`\n- 产品线：`%s`\n- 通道：`%s`\n- 构建结果：`%s`\n' \
-              "$platform_title" "$edition_title" "$channel_title" "$BUILD_RESULT" >> "$notes"
+            for family_dir in "$channel_dir"/*; do
+              [[ -d "$family_dir" ]] || continue
+              family="$(basename "$family_dir")"
+              case "$family" in
+                ipq50xx) family_title='IPQ50xx' ;;
+                ipq60xx) family_title='IPQ60xx' ;;
+                ipq807x) family_title='IPQ807x / IPQ817x' ;;
+                ipq95xx) family_title='IPQ95xx' ;;
+                filogic) family_title='Filogic / MT798x' ;;
+                *) echo "Unknown device family: $family" >&2; exit 1 ;;
+              esac
 
-            if ! gh release view "$tag" >/dev/null 2>&1; then
-              gh release create "$tag" --target "$GITHUB_SHA" \
-                --title "$title" --notes-file "$notes" --latest=false
-            fi
-            gh release upload "$tag" "$channel_dir"/* --clobber
-            gh release edit "$tag" --title "$title" \
-              --notes-file "$notes"
+              tag="okwrt-$PLATFORM-$EDITION-$family-$channel"
+              title="OK-Wrt $platform_title $edition_title · $family_title · $channel_title"
+              notes="release-notes-$PLATFORM-$EDITION-$family-$channel.md"
+              scripts/release-notes.sh "$notes"
+              printf '\n## 本 Release 分类\n\n- 平台：`%s`\n- 产品线：`%s`\n- 芯片族：`%s`\n- 通道：`%s`\n- 完整构建：`%s`\n- 源提交：`%s`\n' \
+                "$platform_title" "$edition_title" "$family_title" "$channel_title" \
+                "$BUILD_RESULT" "$GITHUB_SHA" >> "$notes"
+
+              if ! gh release view "$tag" >/dev/null 2>&1; then
+                gh release create "$tag" --target "$GITHUB_SHA" \
+                  --title "$title" --notes-file "$notes" --latest=false
+              fi
+              gh release upload "$tag" "$family_dir"/* --clobber
+              gh release edit "$tag" --title "$title" --notes-file "$notes"
+            done
           done

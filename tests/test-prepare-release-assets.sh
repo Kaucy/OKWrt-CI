@@ -10,6 +10,7 @@ mkdir -p "$variant"
 cat > "$variant/build-metadata.txt" <<'EOF'
 channel=edge
 feature_set=standard
+subtarget=filogic
 EOF
 
 printf firmware > "$variant/immortalwrt-device-squashfs-sysupgrade.bin"
@@ -23,10 +24,10 @@ printf diagnostic > "$variant/build-failure.log"
 
 "$repo/scripts/prepare-release-assets.sh" "$fixture/input" "$fixture/output"
 
-test -f "$fixture/output/edge/standard--immortalwrt-device-squashfs-sysupgrade.bin"
-test -f "$fixture/output/edge/standard--immortalwrt-device-ubootmod-squashfs-sysupgrade.itb"
-test -f "$fixture/output/edge/standard--immortalwrt-device-squashfs-factory.ubi"
-test -f "$fixture/output/edge/SHA256SUMS-standard.txt"
+test -f "$fixture/output/edge/filogic/standard--immortalwrt-device-squashfs-sysupgrade.bin"
+test -f "$fixture/output/edge/filogic/standard--immortalwrt-device-ubootmod-squashfs-sysupgrade.itb"
+test -f "$fixture/output/edge/filogic/standard--immortalwrt-device-squashfs-factory.ubi"
+test -f "$fixture/output/edge/filogic/SHA256SUMS-standard.txt"
 test "$(find "$fixture/output" -type f | wc -l)" -eq 4
 ! find "$fixture/output" -type f \( -name '*kernel*' -o -name '*initramfs*' -o -name '*config*' -o -name '*profiles*' \) | grep -q .
-(cd "$fixture/output/edge" && sha256sum -c SHA256SUMS-standard.txt)
+(cd "$fixture/output/edge/filogic" && sha256sum -c SHA256SUMS-standard.txt)

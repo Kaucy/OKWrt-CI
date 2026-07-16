@@ -24,11 +24,17 @@ while IFS= read -r -d '' metadata; do
   variant_dir="$(dirname "$metadata")"
   channel="$(metadata_value "$metadata" channel)"
   feature="$(metadata_value "$metadata" feature_set)"
+  family="$(metadata_value "$metadata" subtarget)"
 
   case "$channel" in lts|edge) ;; *) echo "Invalid channel in $metadata: $channel" >&2; exit 1 ;; esac
   case "$feature" in core|standard|standard-usb|ultra) ;; *) echo "Invalid feature set in $metadata: $feature" >&2; exit 1 ;; esac
+  case "$family" in ipq50xx|ipq60xx|ipq807x|ipq95xx|filogic) ;;
+    *) echo "Invalid device family in $metadata: $family" >&2; exit 1 ;;
+  esac
 
-  destination="$output/$channel"
+  # GitHub Release assets are flat.  Keep each device family in a separate
+  # stable Release, then use the feature prefix to sort assets inside it.
+  destination="$output/$channel/$family"
   mkdir -p "$destination"
   while IFS= read -r -d '' firmware; do
     base="$(basename "$firmware")"
@@ -42,16 +48,15 @@ while IFS= read -r -d '' metadata; do
   done < <(find "$variant_dir" -maxdepth 1 -type f -print0)
 done < <(find "$input" -type f -name build-metadata.txt -print0)
 
-for channel_dir in "$output"/*; do
-  [[ -d "$channel_dir" ]] || continue
+while IFS= read -r -d '' family_dir; do
   for feature in core standard standard-usb ultra; do
-    files=("$channel_dir/$feature--"*)
+    files=("$family_dir/$feature--"*)
     [[ -e "${files[0]}" ]] || continue
     (
-      cd "$channel_dir"
+      cd "$family_dir"
       names=()
       for file in "${files[@]}"; do names+=("$(basename "$file")"); done
       sha256sum -- "${names[@]}" > "SHA256SUMS-$feature.txt"
     )
   done
-done
+done < <(find "$output" -mindepth 2 -maxdepth 2 -type d -print0)

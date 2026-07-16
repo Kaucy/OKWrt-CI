@@ -23,7 +23,7 @@
 
 ## Release 分类与固件格式
 
-Release 按 **平台 + 产品线 + 通道** 独立发布，例如 `Qualcomm Open · LTS`、`MediaTek Pro · Edge`，不再把四条构建线堆在同一个 Release。Release 内按功能集前缀排序，并保留上游设备代号：
+Release 按 **平台 + 产品线 + 芯片族 + 通道** 独立发布，例如 `Qualcomm Open · IPQ60xx · LTS`、`MediaTek Pro · Filogic · Edge`，不再把不同芯片族和四条构建线堆在同一个 Release。同一分类使用稳定下载页，每次完整构建会覆盖同名旧资产；Smoke 和不完整构建只保留 Actions artifact，不会污染 Release。Release 内按功能集前缀排序，并保留上游设备代号：
 
 ```text
 ultra--immortalwrt-qualcommax-ipq60xx-jdcloud_re-cs-02-squashfs-sysupgrade.bin
