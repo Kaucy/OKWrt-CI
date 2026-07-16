@@ -154,6 +154,14 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         make package/mtk/drivers/warp/compile -j1 V=s
         recovery_attempted=true
       fi
+      if [[ "$platform:$edition" == "qcom:pro" ]]; then
+        # qca-nss-ecm changes its kernel feature set between bundles.  Remove
+        # stale package stamps and rebuild it serially before retrying world;
+        # this also preserves the actionable compiler output on a real error.
+        make package/feeds/nss_packages/qca-nss-ecm/clean
+        make package/feeds/nss_packages/qca-nss-ecm/compile -j1 V=s
+        recovery_attempted=true
+      fi
       $recovery_attempted || exit 1
       make -j"$(nproc)"
     fi
