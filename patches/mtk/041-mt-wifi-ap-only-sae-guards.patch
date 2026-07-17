@@ -3,8 +3,16 @@ mtk: mt_wifi: guard SAE cleanup in AP-only builds
 The 7.6.7.3 AP source calls an SAE helper even when DOT11_SAE_SUPPORT is
 disabled, while SAE_CFG is only present when SAE support is compiled.  Its
 interface close path also declares pAd only for combined AP+STA builds even
-though the AP-only body always uses it.  Keep both paths consistent with the
-selected feature guards.
+though the AP-only body always uses it.  The AP ioctl implementation also
+comments out the central driver header despite directly using RTMP adapter,
+channel and wifi_dev definitions.  Keep these paths consistent with the
+selected feature guards and include the complete driver declarations.
+
+--- a/mt_wifi/os/linux/ap_ioctl.c
++++ b/mt_wifi/os/linux/ap_ioctl.c
+@@ -28 +28 @@
+-/*#include "rt_config.h" */
++#include "rt_config.h"
 
 --- a/mt_wifi/embedded/ap/ap.c
 +++ b/mt_wifi/embedded/ap/ap.c
