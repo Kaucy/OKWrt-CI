@@ -5,8 +5,10 @@ disabled, while SAE_CFG is only present when SAE support is compiled.  Its
 interface close path also declares pAd only for combined AP+STA builds even
 though the AP-only body always uses it.  The AP ioctl implementation also
 comments out the central driver header despite directly using RTMP adapter,
-channel and wifi_dev definitions.  Keep these paths consistent with the
-selected feature guards and include the complete driver declarations.
+channel and wifi_dev definitions.  Finally, its authentication flood check
+leaves an else-closing brace and an 802.11r field access active when SAE and
+FT are disabled.  Keep these paths consistent with the selected feature
+guards and include the complete driver declarations.
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c
@@ -36,3 +38,33 @@ selected feature guards and include the complete driver declarations.
  
  	if (!wdev->state)
  		return TRUE;
+
+--- a/mt_wifi/embedded/fsm/ap_mgmt_auth.c
++++ b/mt_wifi/embedded/fsm/ap_mgmt_auth.c
+@@ -701,19 +701,23 @@
+ #ifdef DOT11R_FT_SUPPORT
+ 				}
+ #endif
+-			} else {
+-#endif //DOT11_SAE_SUPPORT
++			} else
++#endif /* DOT11_SAE_SUPPORT */
++			{
+ 			if ((IS_AKM_WPA2_SHA256(AkmMap) || IS_AKM_WPA2PSK_SHA256(AkmMap)) &&
+ 				pEntry->SecConfig.ft_only == FALSE) {
++#ifdef DOT11R_FT_SUPPORT
+ 				if (!wdev->FtCfg.FtCapFlag.Dot11rFtEnable) {
++#endif
+ 					if ((pAuth_info->auth_alg == AUTH_MODE_FT) ||
+ 						(pAuth_info->auth_alg == AUTH_MODE_SAE) ||
+ 						(pAuth_info->auth_alg == AUTH_MODE_KEY) ||
+ 						(pAuth_info->auth_alg == AUTH_MODE_FILS) ||
+ 						(pAuth_info->auth_alg == AUTH_MODE_FILS_PFS))
+ 						goto auth_failure;
++#ifdef DOT11R_FT_SUPPORT
+ 				}
+-			}
++#endif
+ 			}
+ 		}
+ #endif /* DOT11W_PMF_SUPPORT */
