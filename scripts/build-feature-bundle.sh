@@ -163,7 +163,11 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         recovery_attempted=true
       fi
       $recovery_attempted || exit 1
-      make -j"$(nproc)"
+      # A second parallel world build hides APK/rootfs installation failures
+      # behind the generic top-level error. Most outputs are already built at
+      # this point, so finish serially with verbose output: this also removes
+      # package/install races and preserves the first actionable error.
+      make -j1 V=s
     fi
 
     test -d "$target_dir"
