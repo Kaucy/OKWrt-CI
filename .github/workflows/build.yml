@@ -19,6 +19,7 @@ on:
       - '.github/workflows/**'
       - 'config/**'
       - 'files/**'
+      - 'patches/**'
       - 'scripts/**'
   schedule:
     - cron: '0 19 * * 0'

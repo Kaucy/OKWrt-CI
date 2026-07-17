@@ -10,6 +10,14 @@ standard_config="$root/config/features/standard.config"
 standard_usb_config="$root/config/features/standard-usb.config"
 mtk_ap_patch="$root/patches/mtk/041-mt-wifi-ap-only-sae-guards.patch"
 
+for workflow in \
+  "$root/.github/workflows/build.yml" \
+  "$root/.github/workflows/build-qcom-pro.yml" \
+  "$root/.github/workflows/build-mtk-open.yml" \
+  "$root/.github/workflows/build-mtk-pro.yml"; do
+  grep -Fq -- "- 'patches/**'" "$workflow"
+done
+
 # Keep the smoke checks cheap: these assertions cover the three CI regressions
 # before a multi-hour firmware build is started.
 grep -Fq 'ln -s /usr/bin/sed staging_dir/host/bin/sed' "$bundle"
