@@ -19,6 +19,7 @@ grep -Fq 'make package/mtk/drivers/mt_wifi/clean' "$bundle"
 grep -Fq 'make package/mtk/drivers/mt_wifi/compile -j1 V=s' "$bundle"
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/clean' "$bundle"
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/compile -j1 V=s' "$bundle"
+# The post-recovery world run must expose package/install diagnostics.
 grep -Fq 'make -j1 V=s' "$bundle"
 grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --max-size=1G' "$bundle"
 grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --cleanup' "$bundle"
