@@ -47,6 +47,12 @@ if [[ "$platform:$edition" == mtk:pro ]]; then
       install -m 0644 \
         "$GITHUB_WORKSPACE/patches/mtk/010-warp-openwrt-hnat-module.patch" \
         "$topdir/package/mtk/drivers/warp/patches/010-warp-openwrt-hnat-module.patch"
+      # mt_wifi 7.6.7.3 leaves an SAE call and pAd declaration inconsistent
+      # with its AP-only Kconfig path. Apply the narrow source guard locally
+      # until the maintained MTK fork carries the fix.
+      install -m 0644 \
+        "$GITHUB_WORKSPACE/patches/mtk/041-mt-wifi-ap-only-sae-guards.patch" \
+        "$topdir/package/mtk/drivers/mt_wifi/patches-7673/041-mt-wifi-ap-only-sae-guards.patch"
       ;;
     *) echo "Unsupported MediaTek Pro SoC: $soc" >&2; exit 1 ;;
   esac

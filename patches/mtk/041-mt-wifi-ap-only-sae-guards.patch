@@ -1,0 +1,30 @@
+mtk: mt_wifi: guard SAE cleanup in AP-only builds
+
+The 7.6.7.3 AP source calls an SAE helper even when DOT11_SAE_SUPPORT is
+disabled, while SAE_CFG is only present when SAE support is compiled.  Its
+interface close path also declares pAd only for combined AP+STA builds even
+though the AP-only body always uses it.  Keep both paths consistent with the
+selected feature guards.
+
+--- a/mt_wifi/embedded/ap/ap.c
++++ b/mt_wifi/embedded/ap/ap.c
+@@ -3711,7 +3711,9 @@ VOID MacTableMaintenance(RTMP_ADAPTER *pAd)
+ 				NdisZeroMemory(pMbss->wdev.WscControl.EntryAddr, MAC_ADDR_LEN);
+ 
+ #endif /* WSC_AP_SUPPORT */
++#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)
+ 				delete_saeinstance_entry(&pAd->SaeCfg, pEntry);
++#endif
+ 				mac_entry_delete(pAd, pEntry);
+ 			continue;
+ 		} else {
+@@ -7704,9 +7706,7 @@ INT ap_inf_open(struct wifi_dev *wdev)
+ */
+ INT ap_inf_close(struct wifi_dev *wdev)
+ {
+-#if defined(CONFIG_AP_SUPPORT) && defined(CONFIG_STA_SUPPORT)
+ 	struct _RTMP_ADAPTER *pAd = (struct _RTMP_ADAPTER *)wdev->sys_handle;
+-#endif	/* CONFIG_AP_SUPPORT && CONFIG_STA_SUPPORT */
+ 
+ 	if (!wdev->state)
+ 		return TRUE;

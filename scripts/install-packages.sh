@@ -33,6 +33,13 @@ case "$feature_set" in
     ;;
   standard|standard-usb|ultra)
     replace_package netspeedtest https://github.com/Kaucy/netspeedtest.git main
+    # OpenWrt 25.12 folds these modules into the current Python packages and
+    # no longer publishes the two legacy package names. The bundled script
+    # does not import either module, so remove only the stale dependencies.
+    sed -i \
+      -e 's/+python3-pkg-resources[[:space:]]*//' \
+      -e 's/+python3-email[[:space:]]*//' \
+      "$pkgdir/netspeedtest/luci-app-netspeedtest/Makefile"
 
     # OpenClash 仓库很大，只取 LuCI 包目录。
     tmp="$pkgdir/.openclash"
