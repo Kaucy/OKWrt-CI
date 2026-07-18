@@ -5,10 +5,12 @@ disabled, while SAE_CFG is only present when SAE support is compiled.  Its
 interface close path also declares pAd only for combined AP+STA builds even
 though the AP-only body always uses it.  The AP ioctl, MBSS, WDS and STA ioctl
 implementations also comment out the central driver header despite directly
-using RTMP adapter, channel, wifi_dev and debug declarations.  Finally, its
-authentication flood check leaves an else-closing brace and an 802.11r field
-access active when SAE and FT are disabled.  Keep these paths consistent with
-the selected feature guards and include the complete driver declarations.
+using RTMP adapter, channel, wifi_dev and debug declarations.  The station
+sync path likewise validates an SAE-only BSS field when SAE is disabled.
+Finally, its authentication flood check leaves an else-closing brace and an
+802.11r field access active when SAE and FT are disabled.  Keep these paths
+consistent with the selected feature guards and include the complete driver
+declarations.
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c
@@ -87,3 +89,10 @@ the selected feature guards and include the complete driver declarations.
  			}
  		}
  #endif /* DOT11W_PMF_SUPPORT */
+
+--- a/mt_wifi/embedded/fsm/sta_mgmt_sync.c
++++ b/mt_wifi/embedded/fsm/sta_mgmt_sync.c
+@@ -1014,0 +1015 @@ BOOLEAN sta_peer_beacon_req_sanity(
++#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)
+@@ -1022,0 +1024 @@ BOOLEAN sta_peer_beacon_req_sanity(
++#endif
