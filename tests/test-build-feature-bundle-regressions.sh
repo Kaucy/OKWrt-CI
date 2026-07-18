@@ -26,7 +26,7 @@ grep -Fq 'make tools/meson/compile -j1 V=s' "$bundle"
 grep -Fq "printf 'CONFIG_TARGET_MULTI_PROFILE=y" "$compose"
 grep -Fq 'ln -s /usr/bin/openssl staging_dir/host/bin/openssl' "$bundle"
 grep -Fq '041-mt-wifi-ap-only-sae-guards.patch' "$compose"
-[[ "$(grep -Fc '+#include "rt_config.h"' "$mtk_ap_patch")" -eq 3 ]]
+[[ "$(grep -Fc '+#include "rt_config.h"' "$mtk_ap_patch")" -eq 4 ]]
 grep -Fq '#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_patch"
 grep -Fq 'struct _RTMP_ADAPTER *pAd = (struct _RTMP_ADAPTER *)wdev->sys_handle;' "$mtk_ap_patch"
 grep -Fq '+#endif /* DOT11_SAE_SUPPORT */' "$mtk_ap_patch"
