@@ -41,7 +41,7 @@ guards and include the complete driver declarations.
 
 --- a/mt_wifi/embedded/fsm/ap_mgmt_auth.c
 +++ b/mt_wifi/embedded/fsm/ap_mgmt_auth.c
-@@ -701,19 +701,23 @@
+@@ -701,19 +701,24 @@
  #ifdef DOT11R_FT_SUPPORT
  				}
  #endif
@@ -65,6 +65,7 @@ guards and include the complete driver declarations.
  				}
 -			}
 +#endif
++			}
  			}
  		}
  #endif /* DOT11W_PMF_SUPPORT */
