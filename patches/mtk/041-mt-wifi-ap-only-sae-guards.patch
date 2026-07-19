@@ -9,9 +9,23 @@ using RTMP adapter, channel, wifi_dev and debug declarations.  The station
 sync path likewise validates an SAE-only BSS field when SAE is disabled.
 Finally, its authentication flood check leaves an else-closing brace and an
 802.11r field access active when SAE and FT are disabled.  Its radiotap path
-also calls netif_rx_ni(), which was removed from current kernels.  Keep these
-paths consistent with the selected feature guards, include the complete
-driver declarations, and use the context-safe netif_rx() replacement.
+also calls netif_rx_ni(), which was removed from current kernels.  MT7986 then
+includes a per-PA EEPROM header which this release never generates; its bin2h
+tool instead writes the selected image to the generic mt7986_e2p.h already
+included immediately above.  Keep these paths consistent with the selected
+feature guards, include the complete driver declarations, use the context-safe
+netif_rx() replacement, and drop the unused missing EEPROM include.
+
+--- a/mt_wifi/chips/mt7986.c
++++ b/mt_wifi/chips/mt7986.c
+@@ -29,7 +29,4 @@
+ #include "eeprom/mt7986_e2p.h"
+-#if defined(CONFIG_FIRST_IF_EPAELNA) || defined(CONFIG_SECOND_IF_EPAELNA) || defined(CONFIG_THIRD_IF_EPAELNA)
+-#include "eeprom/mt7986_e2p_ePAeLNA.h"
+-#endif
+ #if defined(CONFIG_FIRST_IF_IPAELNA) || defined(CONFIG_SECOND_IF_IPAELNA) || defined(CONFIG_THIRD_IF_IPAELNA)
+ #include "eeprom/mt7986_e2p_iPAeLNA.h"
+ #endif
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c

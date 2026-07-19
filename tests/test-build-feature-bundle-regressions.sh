@@ -29,6 +29,8 @@ grep -Fq '041-mt-wifi-ap-only-sae-guards.patch' "$compose"
 [[ "$(grep -Fc '+#include "rt_config.h"' "$mtk_ap_patch")" -eq 4 ]]
 grep -Fq -- $'-\t\tnetif_rx_ni(pOSPkt);' "$mtk_ap_patch"
 grep -Fq -- $'+\t\tnetif_rx(pOSPkt);' "$mtk_ap_patch"
+grep -Fq -- '-#include "eeprom/mt7986_e2p_ePAeLNA.h"' "$mtk_ap_patch"
+grep -Fq 'generic mt7986_e2p.h' "$mtk_ap_patch"
 grep -Fq '#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_patch"
 [[ "$(grep -Fc '+#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_patch")" -eq 2 ]]
 grep -Fq 'struct _RTMP_ADAPTER *pAd = (struct _RTMP_ADAPTER *)wdev->sys_handle;' "$mtk_ap_patch"
