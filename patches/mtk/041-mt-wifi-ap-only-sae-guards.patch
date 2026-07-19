@@ -8,9 +8,10 @@ implementations also comment out the central driver header despite directly
 using RTMP adapter, channel, wifi_dev and debug declarations.  The station
 sync path likewise validates an SAE-only BSS field when SAE is disabled.
 Finally, its authentication flood check leaves an else-closing brace and an
-802.11r field access active when SAE and FT are disabled.  Keep these paths
-consistent with the selected feature guards and include the complete driver
-declarations.
+802.11r field access active when SAE and FT are disabled.  Its radiotap path
+also calls netif_rx_ni(), which was removed from current kernels.  Keep these
+paths consistent with the selected feature guards, include the complete
+driver declarations, and use the context-safe netif_rx() replacement.
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c
@@ -35,6 +36,12 @@ declarations.
 @@ -33 +33 @@
 -/*#include	"rt_config.h" */
 +#include "rt_config.h"
+
+--- a/mt_wifi/os/linux/rt_profile.c
++++ b/mt_wifi/os/linux/rt_profile.c
+@@ -1613 +1613 @@ VOID announce_802_11_radiotap_packet(
+-		netif_rx_ni(pOSPkt);
++		netif_rx(pOSPkt);
 
 --- a/mt_wifi/embedded/ap/ap.c
 +++ b/mt_wifi/embedded/ap/ap.c
