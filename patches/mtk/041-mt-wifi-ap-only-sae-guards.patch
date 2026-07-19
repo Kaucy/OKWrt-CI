@@ -16,7 +16,9 @@ included immediately above.  Keep these paths consistent with the selected
 feature guards, include the complete driver declarations, use the context-safe
 netif_rx() replacement, drop the unused missing EEPROM include, and only
 register MT7986 WLAN-service debug callbacks when their implementations are
-compiled.
+compiled.  The ATE channel switch path also used the WLAN-service-only
+GET_MAX_PATH helper, so access the same core chip capability directly when the
+service layer is disabled.
 
 --- a/mt_wifi/chips/mt7986.c
 +++ b/mt_wifi/chips/mt7986.c
@@ -42,6 +44,12 @@ compiled.
 +        dbg_ops->ctrl_manual_hetb_rx = chip_ctrl_manual_hetb_rx;
 +        dbg_ops->chip_ctrl_spe = chip_ctrl_asic_spe;
 +#endif /* CONFIG_WLAN_SERVICE */
+
+--- a/mt_wifi/mcu/mt_cmd.c
++++ b/mt_wifi/mcu/mt_cmd.c
+@@ -2520 +2520 @@ INT32 MtCmdChannelSwitch(RTMP_ADAPTER *pAd, MT_SWITCH_CHANNEL_CFG SwChCfg)
+-		for (ant_seq = 0 ; ant_seq < GET_MAX_PATH(chip_cap, SwChCfg.BandIdx, 1) ; ant_seq++)
++		for (ant_seq = 0; ant_seq < chip_cap->mcs_nss.max_path[SwChCfg.BandIdx][MAX_PATH_RX]; ant_seq++)
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c
