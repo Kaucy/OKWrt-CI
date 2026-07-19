@@ -13,12 +13,13 @@ soc="${8:-all}"
 {
   printf 'CONFIG_TARGET_%s=y\n' "$target"
   printf 'CONFIG_TARGET_%s_%s=y\n' "$target" "$subtarget"
-  # Device profiles live behind the target profile choice.  Without selecting
-  # MULTI_PROFILE, every DEVICE_=y line replaces the previous choice and
-  # defconfig silently keeps only the last device in a bundle.
+  # Device profiles live behind the target profile choice.  MULTI_PROFILE
+  # exposes a separate TARGET_DEVICE_* namespace; using the single-profile
+  # TARGET_<target>_<subtarget>_DEVICE_* symbols here would keep replacing the
+  # choice and defconfig would silently retain only the last bundled device.
   printf 'CONFIG_TARGET_MULTI_PROFILE=y\n'
   for device in $devices; do
-    printf 'CONFIG_TARGET_%s_%s_DEVICE_%s=y\n' "$target" "$subtarget" "$device"
+    printf 'CONFIG_TARGET_DEVICE_%s_%s_DEVICE_%s=y\n' "$target" "$subtarget" "$device"
   done
   cat "$GITHUB_WORKSPACE/config/common.config" \
     "$GITHUB_WORKSPACE/config/edition/$platform-$edition.config"
