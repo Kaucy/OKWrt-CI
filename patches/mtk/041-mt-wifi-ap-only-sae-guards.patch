@@ -14,7 +14,9 @@ includes a per-PA EEPROM header which this release never generates; its bin2h
 tool instead writes the selected image to the generic mt7986_e2p.h already
 included immediately above.  Keep these paths consistent with the selected
 feature guards, include the complete driver declarations, use the context-safe
-netif_rx() replacement, and drop the unused missing EEPROM include.
+netif_rx() replacement, drop the unused missing EEPROM include, and only
+register MT7986 WLAN-service debug callbacks when their implementations are
+compiled.
 
 --- a/mt_wifi/chips/mt7986.c
 +++ b/mt_wifi/chips/mt7986.c
@@ -26,6 +28,20 @@ netif_rx() replacement, and drop the unused missing EEPROM include.
  #if defined(CONFIG_FIRST_IF_IPAELNA) || defined(CONFIG_SECOND_IF_IPAELNA) || defined(CONFIG_THIRD_IF_IPAELNA)
  #include "eeprom/mt7986_e2p_iPAeLNA.h"
  #endif
+
+--- a/mt_wifi/chips/mt7986_dbg.c
++++ b/mt_wifi/chips/mt7986_dbg.c
+@@ -4982,4 +4982,6 @@ VOID mt7986_chip_dbg_init(struct _RTMP_CHIP_DBG *dbg_ops)
+-#ifdef CONFIG_ATE
+-	dbg_ops->ctrl_manual_hetb_tx = chip_ctrl_manual_hetb_tx;
+-	dbg_ops->ctrl_manual_hetb_rx = chip_ctrl_manual_hetb_rx;
+-	dbg_ops->chip_ctrl_spe = chip_ctrl_asic_spe;
++#ifdef CONFIG_ATE
++#ifdef CONFIG_WLAN_SERVICE
++        dbg_ops->ctrl_manual_hetb_tx = chip_ctrl_manual_hetb_tx;
++        dbg_ops->ctrl_manual_hetb_rx = chip_ctrl_manual_hetb_rx;
++        dbg_ops->chip_ctrl_spe = chip_ctrl_asic_spe;
++#endif /* CONFIG_WLAN_SERVICE */
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c
