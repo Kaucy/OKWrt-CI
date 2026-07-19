@@ -18,7 +18,10 @@ netif_rx() replacement, drop the unused missing EEPROM include, and only
 register MT7986 WLAN-service debug callbacks when their implementations are
 compiled.  The ATE channel switch path also used the WLAN-service-only
 GET_MAX_PATH helper, so access the same core chip capability directly when the
-service layer is disabled.
+service layer is disabled.  Finally, the peer measurement request handler is
+only reachable from the station action path, but was compiled in AP-only
+builds and referenced off-channel scan state that is not present there.  Keep
+its definition under the same station-support guard as its only caller.
 
 --- a/mt_wifi/chips/mt7986.c
 +++ b/mt_wifi/chips/mt7986.c
@@ -50,6 +53,13 @@ service layer is disabled.
 @@ -2520 +2520 @@ INT32 MtCmdChannelSwitch(RTMP_ADAPTER *pAd, MT_SWITCH_CHANNEL_CFG SwChCfg)
 -		for (ant_seq = 0 ; ant_seq < GET_MAX_PATH(chip_cap, SwChCfg.BandIdx, 1) ; ant_seq++)
 +		for (ant_seq = 0; ant_seq < chip_cap->mcs_nss.max_path[SwChCfg.BandIdx][MAX_PATH_RX]; ant_seq++)
+
+--- a/mt_wifi/embedded/common/rrm.c
++++ b/mt_wifi/embedded/common/rrm.c
+@@ -2557,0 +2558 @@
++#ifdef CONFIG_STA_SUPPORT
+@@ -2688,0 +2690 @@
++#endif /* CONFIG_STA_SUPPORT */
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c

@@ -38,6 +38,9 @@ grep -Fzq -- $'+#ifdef CONFIG_WLAN_SERVICE\n-\tdbg_ops->ctrl_manual_hetb_tx = ch
 grep -Fq -- '--- a/mt_wifi/mcu/mt_cmd.c' "$mtk_ap_patch"
 grep -Fq -- $'-\t\tfor (ant_seq = 0 ; ant_seq < GET_MAX_PATH(chip_cap, SwChCfg.BandIdx, 1) ; ant_seq++)' "$mtk_ap_patch"
 grep -Fq -- $'+\t\tfor (ant_seq = 0; ant_seq < chip_cap->mcs_nss.max_path[SwChCfg.BandIdx][MAX_PATH_RX]; ant_seq++)' "$mtk_ap_patch"
+grep -Fq -- '--- a/mt_wifi/embedded/common/rrm.c' "$mtk_ap_patch"
+grep -Fq -- '+#ifdef CONFIG_STA_SUPPORT' "$mtk_ap_patch"
+grep -Fq -- '+#endif /* CONFIG_STA_SUPPORT */' "$mtk_ap_patch"
 grep -Fq '#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_patch"
 [[ "$(grep -Fc '+#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_patch")" -eq 2 ]]
 grep -Fq 'struct _RTMP_ADAPTER *pAd = (struct _RTMP_ADAPTER *)wdev->sys_handle;' "$mtk_ap_patch"
