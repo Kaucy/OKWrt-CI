@@ -173,6 +173,23 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
 
     test -d "$target_dir"
     find "$target_dir" -maxdepth 1 -type f -exec cp {} "$out/" \;
+    if [[ "$feature" != core ]]; then
+      shopt -s nullglob
+      manifests=("$out"/*.manifest)
+      shopt -u nullglob
+      ((${#manifests[@]})) || {
+        echo "No package manifest was produced for $variant" >&2
+        exit 1
+      }
+      for package in \
+        luci-app-homeproxy luci-app-passwall2 \
+        luci-app-daed daed daed-geoip daed-geosite; do
+        grep -hEq "^${package} - " "${manifests[@]}" || {
+          echo "Required Standard package is missing from $variant: $package" >&2
+          exit 1
+        }
+      done
+    fi
     # 只有真正可刷写的 factory/sysupgrade/combined 镜像才算固件；
     # kernel.bin、initramfs、preloader 等辅助文件不能让完整性检查误通过。
     find "$out" -maxdepth 1 -type f \
@@ -180,6 +197,7 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
          -o -name '*-sysupgrade.itb' -o -name '*-factory.itb' \
          -o -name '*-sysupgrade.ubi' -o -name '*-factory.ubi' \
          -o -name '*-combined*.img.gz' \) \
+      -size +1M \
       -print -quit | grep -q .
   ) 2>&1 | tee "$log"
   status=${PIPESTATUS[0]}
