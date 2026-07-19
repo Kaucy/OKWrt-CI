@@ -21,7 +21,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: okwrt-${{ inputs.platform }}-${{ inputs.edition }}-${{ github.ref }}
+  group: okwrt-${{ inputs.platform }}-${{ inputs.edition }}-${{ inputs.scope }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:

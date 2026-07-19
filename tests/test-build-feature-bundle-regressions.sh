@@ -9,6 +9,7 @@ mtk_config="$root/config/edition/mtk-pro.config"
 standard_config="$root/config/features/standard.config"
 standard_usb_config="$root/config/features/standard-usb.config"
 mtk_ap_patch="$root/patches/mtk/041-mt-wifi-ap-only-sae-guards.patch"
+shard_workflow="$root/.github/workflows/_build-shard.yml"
 
 for workflow in \
   "$root/.github/workflows/build.yml" \
@@ -26,6 +27,7 @@ grep -Fq 'make tools/meson/compile -j1 V=s' "$bundle"
 grep -Fq "printf 'CONFIG_TARGET_MULTI_PROFILE=y" "$compose"
 grep -Fq 'ln -s /usr/bin/openssl staging_dir/host/bin/openssl' "$bundle"
 grep -Fq '041-mt-wifi-ap-only-sae-guards.patch' "$compose"
+grep -Fq 'group: okwrt-${{ inputs.platform }}-${{ inputs.edition }}-${{ inputs.scope }}-${{ github.ref }}' "$shard_workflow"
 [[ "$(grep -Fc '+#include "rt_config.h"' "$mtk_ap_patch")" -eq 4 ]]
 grep -Fq -- $'-\t\tnetif_rx_ni(pOSPkt);' "$mtk_ap_patch"
 grep -Fq -- $'+\t\tnetif_rx(pOSPkt);' "$mtk_ap_patch"
