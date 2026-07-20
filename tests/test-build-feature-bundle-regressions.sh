@@ -117,6 +117,11 @@ grep -Fxq 'CONFIG_PACKAGE_luci-app-qmodem_INCLUDE_generic-qmi-wwan=y' "$standard
 grep -Fxq '# CONFIG_PACKAGE_luci-app-qmodem_INCLUDE_vendor-qmi-wwan is not set' "$standard_usb_config"
 grep -Fxq '# CONFIG_PACKAGE_luci-app-qmodem_INCLUDE_nss-qmi-wwan is not set' "$standard_usb_config"
 grep -Fxq 'CONFIG_PACKAGE_kmod-ipt-nat=y' "$mtk_config"
+grep -Fxq 'CONFIG_PACKAGE_kmod-warp=y' "$mtk_config"
+grep -Fxq 'CONFIG_MTK_WLAN_HOOK=y' "$mtk_config"
+grep -Fxq 'CONFIG_MTK_FAST_NAT_SUPPORT=y' "$mtk_config"
+grep -Fxq 'CONFIG_MTK_WHNAT_SUPPORT=y' "$mtk_config"
+grep -Fxq 'CONFIG_MTK_WARP_V2=y' "$mtk_config"
 
 world_line="$(grep -nF 'if ! make -j"$(nproc)"; then' "$bundle" | cut -d: -f1)"
 daed_line="$(grep -nF 'make package/feeds/packages/daed/compile -j1 V=s' "$bundle" | cut -d: -f1)"
