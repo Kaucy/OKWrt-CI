@@ -25,7 +25,9 @@ Keep Beacon Table mode available and report other modes as incapable when the
 off-channel scanner is absent.  The non-service ATE path also used an adapter
 name which does not exist in its RU error handling and omitted the band index
 from one TX-vector check; use the function's adapter and the complete callback
-signature.
+signature.  The legacy HQA ioctl path likewise leaked WLAN-service-only band,
+logging, and status symbols into a non-service build; use the native testmode
+band count, driver logger, and invalid-data status there.
 
 --- a/mt_wifi/ate/ate_agent.c
 +++ b/mt_wifi/ate/ate_agent.c
@@ -51,6 +53,49 @@ signature.
  				else if (phy_mode < MODE_VHT)
  					Ret = chip_dbg->check_txv(pAd->hdev_ctrl, "NSTS", (entry->phy_param.rate >> 3), control_band_idx);
  				else
+
+--- a/mt_wifi/ate/testmode_ioctl.c
++++ b/mt_wifi/ate/testmode_ioctl.c
+@@ -2181,7 +2181,7 @@
+ 			  Band, Control, AntMask, tx_mode, BW, Pri_Ch, Rate, Central_Ch, TxfdMode);
+ 
+ 	if (Control) {
+-		if (ATEOp->StartContinousTx && Band_idx < TEST_DBDC_BAND_NUM) {
++		if (ATEOp->StartContinousTx && Band_idx < TESTMODE_BAND_NUM) {
+ 			TESTMODE_SET_PARAM(pAd, Band_idx, tx_mode, tx_mode);
+ 			TESTMODE_SET_PARAM(pAd, Band_idx, bw, BW);
+ 			TESTMODE_SET_PARAM(pAd, Band_idx, ctrl_ch, Pri_Ch);
+@@ -6750,21 +6750,21 @@
+ 	EthGetParamAndShiftBuff(TRUE, sizeof(UINT32), &data, (UCHAR *)&seg_sta_cnt[0]);
+ 	EthGetParamAndShiftBuff(TRUE, sizeof(UINT32), &data, (UCHAR *)&seg_sta_cnt[1]);
+ 
+-	if (band_idx >= TEST_DBDC_BAND_NUM) {
+-		SERV_LOG(SERV_DBG_CAT_TEST, SERV_DBG_LVL_ERROR,
+-		("%s: band_idx=%d, error\n", __func__, band_idx));
+-		Ret = SERV_STATUS_AGENT_INVALID_BANDIDX;
++	if (band_idx >= TESTMODE_BAND_NUM) {
++		MTWF_DBG(ad, DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_ERROR,
++			 "%s: band_idx=%d, error\n", __func__, band_idx);
++		Ret = NDIS_STATUS_INVALID_DATA;
+ 		goto err_out;
+ 	}
+ 
+ 	if ((seg_sta_cnt[0] > SEG_STA_CNT)
+ 		|| (seg_sta_cnt[1] > SEG_STA_CNT)) {
+-		Ret = SERV_STATUS_AGENT_INVALID_PARAM;
++		Ret = NDIS_STATUS_INVALID_DATA;
+ 		goto err_out;
+ 	}
+ 
+ 	if (seg_sta_cnt[0] + seg_sta_cnt[1] == 0) {
+-		Ret = SERV_STATUS_AGENT_INVALID_LEN;
++		Ret = NDIS_STATUS_INVALID_DATA;
+ 		goto err_out;
+ 	}
+
+@@ -6788 +6788 @@
+-				Ret = SERV_STATUS_AGENT_INVALID_LEN;
++				Ret = NDIS_STATUS_INVALID_DATA;
 
 --- a/mt_wifi/chips/mt7986.c
 +++ b/mt_wifi/chips/mt7986.c
