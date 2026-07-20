@@ -22,7 +22,35 @@ service layer is disabled.  Finally, the peer measurement request handler
 compiled its active/passive scan branch without OFFCHANNEL_SCAN_FEATURE even
 though the branch references state and helpers provided only by that feature.
 Keep Beacon Table mode available and report other modes as incapable when the
-off-channel scanner is absent.
+off-channel scanner is absent.  The non-service ATE path also used an adapter
+name which does not exist in its RU error handling and omitted the band index
+from one TX-vector check; use the function's adapter and the complete callback
+signature.
+
+--- a/mt_wifi/ate/ate_agent.c
++++ b/mt_wifi/ate/ate_agent.c
+@@ -1447,10 +1447,10 @@ INT32 set_ate_ru_info(RTMP_ADAPTER *ad, RTMP_STRING *Arg)
+ 		if (ate_op->set_ru_info)
+ 			ate_op->set_ru_info(ad, band_idx, Arg);
+ 		else
+-			MTWF_DBG(pAd, DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_ERROR,
++			MTWF_DBG(ad, DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_ERROR,
+ 				"handler not registered, dismissed!\n");
+ 	} else {
+-		MTWF_DBG(pAd, DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_ERROR, "Invalid string\n");
++		MTWF_DBG(ad, DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_ERROR, "Invalid string\n");
+ 	}
+ 
+ 	return ret;
+@@ -6460,7 +6460,7 @@ INT SetATE(RTMP_ADAPTER *pAd, RTMP_STRING *Arg)
+ 				} else
+ 					Ret = chip_dbg->check_txv(pAd->hdev_ctrl, "Rate", entry->phy_param.rate, control_band_idx);
+ 				if (phy_mode < MODE_HTMIX)
+-					Ret = chip_dbg->check_txv(pAd->hdev_ctrl, "NSTS", 0);
++					Ret = chip_dbg->check_txv(pAd->hdev_ctrl, "NSTS", 0, control_band_idx);
+ 				else if (phy_mode < MODE_VHT)
+ 					Ret = chip_dbg->check_txv(pAd->hdev_ctrl, "NSTS", (entry->phy_param.rate >> 3), control_band_idx);
+ 				else
 
 --- a/mt_wifi/chips/mt7986.c
 +++ b/mt_wifi/chips/mt7986.c

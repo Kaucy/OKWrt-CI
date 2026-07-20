@@ -42,6 +42,11 @@ grep -Fzq -- $'+#ifdef CONFIG_WLAN_SERVICE\n-\tdbg_ops->ctrl_manual_hetb_tx = ch
 grep -Fq -- '--- a/mt_wifi/mcu/mt_cmd.c' "$mtk_ap_patch"
 grep -Fq -- $'-\t\tfor (ant_seq = 0 ; ant_seq < GET_MAX_PATH(chip_cap, SwChCfg.BandIdx, 1) ; ant_seq++)' "$mtk_ap_patch"
 grep -Fq -- $'+\t\tfor (ant_seq = 0; ant_seq < chip_cap->mcs_nss.max_path[SwChCfg.BandIdx][MAX_PATH_RX]; ant_seq++)' "$mtk_ap_patch"
+grep -Fq -- '--- a/mt_wifi/ate/ate_agent.c' "$mtk_ap_patch"
+[[ "$(grep -Fc '+\t\t\tMTWF_DBG(ad, DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_ERROR' "$mtk_ap_patch")" -eq 1 ]]
+grep -Fq -- $'+\t\tMTWF_DBG(ad, DBG_CAT_TEST, DBG_SUBCAT_ALL, DBG_LVL_ERROR, "Invalid string\\n");' "$mtk_ap_patch"
+grep -Fq -- $'+\t\t\t\t\tRet = chip_dbg->check_txv(pAd->hdev_ctrl, "NSTS", 0, control_band_idx);' "$mtk_ap_patch"
+! grep -Fq -- $'+\t\t\t\t\tRet = chip_dbg->check_txv(pAd->hdev_ctrl, "NSTS", 0);' "$mtk_ap_patch"
 grep -Fq -- '--- a/mt_wifi/embedded/common/rrm.c' "$mtk_ap_patch"
 grep -Fq -- '+#ifdef OFFCHANNEL_SCAN_FEATURE' "$mtk_ap_patch"
 grep -Fq -- '+#endif /* OFFCHANNEL_SCAN_FEATURE */' "$mtk_ap_patch"
