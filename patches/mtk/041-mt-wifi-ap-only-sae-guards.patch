@@ -18,10 +18,11 @@ netif_rx() replacement, drop the unused missing EEPROM include, and only
 register MT7986 WLAN-service debug callbacks when their implementations are
 compiled.  The ATE channel switch path also used the WLAN-service-only
 GET_MAX_PATH helper, so access the same core chip capability directly when the
-service layer is disabled.  Finally, the peer measurement request handler is
-only reachable from the station action path, but was compiled in AP-only
-builds and referenced off-channel scan state that is not present there.  Keep
-its definition under the same station-support guard as its only caller.
+service layer is disabled.  Finally, the peer measurement request handler
+compiled its active/passive scan branch without OFFCHANNEL_SCAN_FEATURE even
+though the branch references state and helpers provided only by that feature.
+Keep Beacon Table mode available and report other modes as incapable when the
+off-channel scanner is absent.
 
 --- a/mt_wifi/chips/mt7986.c
 +++ b/mt_wifi/chips/mt7986.c
@@ -56,10 +57,16 @@ its definition under the same station-support guard as its only caller.
 
 --- a/mt_wifi/embedded/common/rrm.c
 +++ b/mt_wifi/embedded/common/rrm.c
-@@ -2557,0 +2558 @@
-+#ifdef CONFIG_STA_SUPPORT
-@@ -2688,0 +2690 @@
-+#endif /* CONFIG_STA_SUPPORT */
+@@ -2663,0 +2664 @@ VOID RRM_PeerMeasureReqAction(
++#ifdef OFFCHANNEL_SCAN_FEATURE
+@@ -2685,0 +2687,7 @@ VOID RRM_PeerMeasureReqAction(
++#else
++		} else {
++			pBcnReqData->Incap = 1;
++			pBcnReqData->Ref = 0;
++			RRM_EnqueuePeerBeaconRep(pAd, pBcnReqData,
++				pBcnReqData->Addr2Req, pBcnReqData->Addr1Req, NULL);
++#endif /* OFFCHANNEL_SCAN_FEATURE */
 
 --- a/mt_wifi/os/linux/ap_ioctl.c
 +++ b/mt_wifi/os/linux/ap_ioctl.c
