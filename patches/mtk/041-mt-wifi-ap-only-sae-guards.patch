@@ -59,13 +59,14 @@ off-channel scanner is absent.
 +++ b/mt_wifi/embedded/common/rrm.c
 @@ -2663,0 +2664 @@ VOID RRM_PeerMeasureReqAction(
 +#ifdef OFFCHANNEL_SCAN_FEATURE
-@@ -2685,0 +2687,7 @@ VOID RRM_PeerMeasureReqAction(
+@@ -2685,0 +2687,8 @@ VOID RRM_PeerMeasureReqAction(
 +#else
 +		} else {
 +			pBcnReqData->Incap = 1;
 +			pBcnReqData->Ref = 0;
 +			RRM_EnqueuePeerBeaconRep(pAd, pBcnReqData,
 +				pBcnReqData->Addr2Req, pBcnReqData->Addr1Req, NULL);
++		}
 +#endif /* OFFCHANNEL_SCAN_FEATURE */
 
 --- a/mt_wifi/os/linux/ap_ioctl.c

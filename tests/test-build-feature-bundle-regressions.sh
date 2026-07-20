@@ -47,6 +47,7 @@ grep -Fq -- '+#ifdef OFFCHANNEL_SCAN_FEATURE' "$mtk_ap_patch"
 grep -Fq -- '+#endif /* OFFCHANNEL_SCAN_FEATURE */' "$mtk_ap_patch"
 grep -Fq -- $'+\t\t\tpBcnReqData->Incap = 1;' "$mtk_ap_patch"
 grep -Fq -- $'+\t\t\tRRM_EnqueuePeerBeaconRep(pAd, pBcnReqData,' "$mtk_ap_patch"
+grep -Fq -- $'+\t\t}' "$mtk_ap_patch"
 ! grep -Fq -- '+#ifdef CONFIG_STA_SUPPORT' "$mtk_ap_patch"
 grep -Fq '#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_patch"
 [[ "$(grep -Fc '+#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_patch")" -eq 2 ]]
