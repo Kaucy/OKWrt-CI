@@ -27,7 +27,11 @@ name which does not exist in its RU error handling and omitted the band index
 from one TX-vector check; use the function's adapter and the complete callback
 signature.  The legacy HQA ioctl path likewise leaked WLAN-service-only band,
 logging, and status symbols into a non-service build; use the native testmode
-band count, driver logger, and invalid-data status there.
+band count, driver logger, and invalid-data status there.  The native ATE
+implementation has the same layering leak: it uses the service-only antenna
+path helper, pre-calibration operation enums, and integer typedef.  Read the
+core path table directly and provide native enum/type equivalents when the
+service layer is absent.
 
 --- a/mt_wifi/ate/ate_agent.c
 +++ b/mt_wifi/ate/ate_agent.c
@@ -97,6 +101,106 @@ band count, driver logger, and invalid-data status there.
 -				Ret = SERV_STATUS_AGENT_INVALID_LEN;
 +				Ret = NDIS_STATUS_INVALID_DATA;
 
+--- a/mt_wifi/ate/mt_mac/mt_testmode.c
++++ b/mt_wifi/ate/mt_mac/mt_testmode.c
+@@ -42,6 +42,22 @@
+ #include "chip/mt7981.h"
+ #endif
+ 
++#ifndef CONFIG_WLAN_SERVICE
++enum ENUM_PREK_GROUP_OP {
++	PREK_GROUP_CLEAN = 0,
++	PREK_GROUP_DUMP = 1,
++	PREK_GROUP_PROC = 2,
++};
++
++enum ENUM_PREK_DPD_OP {
++	PREK_DPD_CLEAN = 0,
++	PREK_DPD_DUMP = 1,
++	PREK_DPD_5G_PROC = 2,
++	PREK_DPD_2G_PROC = 3,
++	PREK_DPD_6G_PROC = 4,
++};
++#endif /* CONFIG_WLAN_SERVICE */
++
+ #define MCAST_WCID_TO_REMOVE 0  /* Pat: TODO */
+ 
+ static struct _ATE_DATA_RATE_MAP cck_mode_mcs_to_data_rate_map[] = {
+@@ -7146,7 +7162,9 @@
+ 	UCHAR control_band_idx = TESTMODE_GET_BAND_IDX(pAd), ant_mask = 0;
+ 	struct _RTMP_CHIP_CAP *cap = hc_get_chip_cap(pAd->hdev_ctrl);
+ 
+-	for (ant_loop = 0; ant_loop < GET_MAX_PATH(cap, control_band_idx, 0); ant_loop++)
++	for (ant_loop = 0;
++	     ant_loop < cap->mcs_nss.max_path[control_band_idx][MAX_PATH_TX];
++	     ant_loop++)
+ 		ant_mask |= (0x1 << ant_loop);
+ 
+ 	Ant &= ant_mask;
+@@ -7170,7 +7188,9 @@
+ 	UCHAR control_band_idx = TESTMODE_GET_BAND_IDX(pAd), ant_mask = 0;
+ 	struct _RTMP_CHIP_CAP *cap = hc_get_chip_cap(pAd->hdev_ctrl);
+ 
+-	for (ant_loop = 0; ant_loop < GET_MAX_PATH(cap, control_band_idx, 1); ant_loop++)
++	for (ant_loop = 0;
++	     ant_loop < cap->mcs_nss.max_path[control_band_idx][MAX_PATH_RX];
++	     ant_loop++)
+ 		ant_mask |= (0x1 << ant_loop);
+ 
+ 	Ant &= ant_mask;
+@@ -7320,7 +7340,7 @@
+ 	HcReleaseRadioForWdev(pAd, wdev);
+ #endif /* !defined(COMPOS_TESTMODE_WIN) */
+ 
+-	max_path_num = GET_MAX_PATH(cap, control_band_idx, 1);
++	max_path_num = cap->mcs_nss.max_path[control_band_idx][MAX_PATH_RX];
+ 	if (IS_ATE_DBDC(pAd))
+ 		if (!IS_PHY_CAPS(cap->phy_caps, fPHY_CAP_DUALPHY))
+ 			max_stream_num = max_path_num / 2 ? max_path_num / 2 : 1;
+@@ -10164,8 +10184,8 @@
+ 	USHORT                doCal1 = 0;
+ 	MT_SWITCH_CHANNEL_CFG ch_cfg;
+ #ifdef DBDC_MODE
+-	u_int32 band0_tx_path_backup, band0_rx_path_backup;
+-	u_int32 band1_tx_path_backup, band1_rx_path_backup;
++	UINT32 band0_tx_path_backup, band0_rx_path_backup;
++	UINT32 band1_tx_path_backup, band1_rx_path_backup;
+ #endif
+ 	RTMP_CHIP_OP *pChipOps = NULL;
+ 	struct _RTMP_CHIP_CAP *cap = NULL;
+@@ -10473,8 +10493,8 @@
+ 	USHORT                doCal1 = 0;
+ 	MT_SWITCH_CHANNEL_CFG ch_cfg;
+ #ifdef DBDC_MODE
+-	u_int32 band0_tx_path_backup, band0_rx_path_backup;
+-	u_int32 band1_tx_path_backup, band1_rx_path_backup;
++	UINT32 band0_tx_path_backup, band0_rx_path_backup;
++	UINT32 band1_tx_path_backup, band1_rx_path_backup;
+ #endif
+ 	struct _RTMP_CHIP_CAP *cap = hc_get_chip_cap(pAd->hdev_ctrl);
+ 
+@@ -10835,8 +10855,8 @@
+ 	USHORT                doCal1 = 0;
+ 	MT_SWITCH_CHANNEL_CFG ch_cfg;
+ #ifdef DBDC_MODE
+-	u_int32 band0_tx_path_backup, band0_rx_path_backup;
+-	u_int32 band1_tx_path_backup, band1_rx_path_backup;
++	UINT32 band0_tx_path_backup, band0_rx_path_backup;
++	UINT32 band1_tx_path_backup, band1_rx_path_backup;
+ #endif
+ 	struct _RTMP_CHIP_CAP *cap = hc_get_chip_cap(pAd->hdev_ctrl);
+ 
+@@ -11197,8 +11217,8 @@
+ 	USHORT                doCal1 = 0;
+ 	MT_SWITCH_CHANNEL_CFG ch_cfg;
+ #ifdef DBDC_MODE
+-	u_int32 band0_tx_path_backup, band0_rx_path_backup;
+-	u_int32 band1_tx_path_backup, band1_rx_path_backup;
++	UINT32 band0_tx_path_backup, band0_rx_path_backup;
++	UINT32 band1_tx_path_backup, band1_rx_path_backup;
+ #endif
+ 	struct _RTMP_CHIP_CAP *cap = hc_get_chip_cap(pAd->hdev_ctrl);
+ 
 --- a/mt_wifi/chips/mt7986.c
 +++ b/mt_wifi/chips/mt7986.c
 @@ -29,7 +29,4 @@
@@ -162,7 +266,7 @@ band count, driver logger, and invalid-data status there.
 
 --- a/mt_wifi/os/linux/sta_ioctl.c
 +++ b/mt_wifi/os/linux/sta_ioctl.c
-@@ -33 +33 @@
+@@ -35 +35 @@
 -/*#include	"rt_config.h" */
 +#include "rt_config.h"
 
