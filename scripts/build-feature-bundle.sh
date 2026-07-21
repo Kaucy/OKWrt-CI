@@ -9,7 +9,13 @@ edition="${5:?edition is required}"
 channel="${6:?channel is required}"
 devices="${7:?device list is required}"
 soc="${8:-all}"
-chunk="${9:?chunk is required}"
+kernel_profile="${9:?kernel profile is required}"
+chunk="${10:?chunk is required}"
+
+case "$platform:$subtarget:$kernel_profile" in
+  qcom:ipq60xx:kernel-6m|qcom:ipq60xx:kernel-large|*:kernel-default) ;;
+  *) echo "Invalid kernel profile for $platform/$subtarget: $kernel_profile" >&2; exit 1 ;;
+esac
 
 catalog="$GITHUB_WORKSPACE/config/devices.tsv"
 upload="$GITHUB_WORKSPACE/upload"
@@ -31,11 +37,11 @@ reclaim_variant_space() {
 : > "$failures"
 mkdir -p "$upload"
 
-while IFS=$'\t' read -r row_platform row_target row_subtarget device _name _soc row_edition row_channel max_feature; do
+while IFS=$'\t' read -r row_platform row_target row_subtarget device _name _soc row_edition row_channel max_feature row_kernel_profile; do
   [[ "$row_platform" == platform ]] && continue
   [[ "$row_platform:$row_target:$row_subtarget:$row_edition:$row_channel" == "$platform:$target:$subtarget:$edition:$channel" ]] || continue
   for requested in $devices; do
-    [[ "$device" == "$requested" ]] && maximum["$device"]="$max_feature"
+    [[ "$device" == "$requested" && "$row_kernel_profile" == "$kernel_profile" ]] && maximum["$device"]="$max_feature"
   done
 done < "$catalog"
 
@@ -83,6 +89,7 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
   device_list="${selected[*]}"
   variant="$target-$subtarget-$edition-$channel"
   [[ "$soc" == all ]] || variant+="-$soc"
+  [[ "$subtarget" == ipq60xx ]] && variant+="-$kernel_profile"
   variant+="-$feature-part$chunk"
   out="$upload/$variant"
   log="$GITHUB_WORKSPACE/$variant.log"
@@ -93,7 +100,7 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
   (
     set -euo pipefail
     "$GITHUB_WORKSPACE/scripts/compose-config.sh" "$topdir" \
-      "$platform" "$target" "$subtarget" "$edition" "$feature" "$device_list" "$soc"
+      "$platform" "$target" "$subtarget" "$edition" "$feature" "$device_list" "$soc" "$kernel_profile"
     cd "$topdir"
     make defconfig
     for device in $device_list; do
@@ -227,6 +234,7 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
     "channel=$channel" \
     "feature_set=$feature" \
     "soc=$soc" \
+    "kernel_profile=$kernel_profile" \
     "chunk=$chunk" \
     "fork_sha=$FORK_SHA" \
     "upstream_sha=$UPSTREAM_SHA" \

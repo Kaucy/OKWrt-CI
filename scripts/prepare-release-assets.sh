@@ -25,12 +25,25 @@ while IFS= read -r -d '' metadata; do
   channel="$(metadata_value "$metadata" channel)"
   feature="$(metadata_value "$metadata" feature_set)"
   family="$(metadata_value "$metadata" subtarget)"
+  kernel_profile="$(metadata_value "$metadata" kernel_profile)"
 
   case "$channel" in lts|edge) ;; *) echo "Invalid channel in $metadata: $channel" >&2; exit 1 ;; esac
   case "$feature" in core|standard|standard-usb|ultra) ;; *) echo "Invalid feature set in $metadata: $feature" >&2; exit 1 ;; esac
   case "$family" in ipq50xx|ipq60xx|ipq807x|ipq95xx|filogic) ;;
     *) echo "Invalid device family in $metadata: $family" >&2; exit 1 ;;
   esac
+  if [[ "$family" == ipq60xx ]]; then
+    case "$kernel_profile" in kernel-6m|kernel-large) ;;
+      *) echo "Invalid kernel profile in $metadata: $kernel_profile" >&2; exit 1 ;;
+    esac
+    kernel_prefix="$kernel_profile--"
+  else
+    [[ "$kernel_profile" == kernel-default ]] || {
+      echo "Invalid kernel profile in $metadata: $kernel_profile" >&2
+      exit 1
+    }
+    kernel_prefix=""
+  fi
 
   # GitHub Release assets are flat.  Keep each device family in a separate
   # stable Release, then use the feature prefix to sort assets inside it.
@@ -39,7 +52,7 @@ while IFS= read -r -d '' metadata; do
   while IFS= read -r -d '' firmware; do
     base="$(basename "$firmware")"
     is_firmware "$base" || continue
-    published="$destination/$feature--$base"
+    published="$destination/$feature--$kernel_prefix$base"
     [[ ! -e "$published" ]] || {
       echo "Duplicate Release asset: $published" >&2
       exit 1

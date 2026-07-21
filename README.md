@@ -26,12 +26,14 @@
 Release 按 **平台 + 产品线 + 芯片族 + 通道** 独立发布，例如 `Qualcomm Open · IPQ60xx · LTS`、`MediaTek Pro · Filogic · Edge`，不再把不同芯片族和四条构建线堆在同一个 Release。同一分类使用稳定下载页，每次完整构建会覆盖同名旧资产；Smoke 和不完整构建只保留 Actions artifact，不会污染 Release。Release 内按功能集前缀排序，并保留上游设备代号：
 
 ```text
-ultra--immortalwrt-qualcommax-ipq60xx-jdcloud_re-cs-02-squashfs-sysupgrade.bin
+ultra--kernel-6m--immortalwrt-qualcommax-ipq60xx-jdcloud_re-cs-02-squashfs-sysupgrade.bin
+standard-usb--kernel-large--immortalwrt-qualcommax-ipq60xx-linksys_mr7500-squashfs-sysupgrade.bin
 standard--immortalwrt-mediatek-filogic-cudy_tr3000-v1-squashfs-sysupgrade.bin
 standard--immortalwrt-mediatek-filogic-xiaomi_redmi-router-ax6000-ubootmod-squashfs-sysupgrade.itb
 ```
 
 - `.bin` 和 `.itb` 都会保留；具体格式由设备上游 profile 决定，并非每台设备同时提供两种。
+- IPQ60xx 的 `kernel-6m--` 表示 6 MiB 固定内核分区，使用紧凑内核配置；`kernel-large--` 表示更大或动态内核分区，保留上游完整诊断与可选 BPF 能力。该标记来自设备 profile，不能手工改名后混刷。
 - `sysupgrade` 用于从兼容 OpenWrt 升级；`factory` 仅用于设备安装说明明确支持的原厂刷入场景。
 - `.ubi` 与 `combined.img.gz` 仅在上游将其定义为可刷写 factory/sysupgrade/磁盘镜像时发布。
 - Release 只保留可刷写固件和按功能集生成的 `SHA256SUMS`；配置、buildinfo、profiles、裸 kernel、initramfs 和失败日志只留在 Actions artifact 中。
@@ -54,7 +56,7 @@ standard--immortalwrt-mediatek-filogic-xiaomi_redmi-router-ax6000-ubootmod-squas
 
 当前目录合并去重后包含 **98 个 Qualcomm** 与 **191 个 MediaTek** 设备 profile。不同 LTS/Edge、Open/Pro 上游的实际设备集合并不完全相同，准确的设备代号、设备名称、SoC、版本支持与最高功能集统一列在 [DEVICES.md](DEVICES.md)。
 
-CI 按目标和最多 25 个设备一组生成 Bundle 矩阵，避免“每设备、每功能集一个 Job”造成大量重复编译。每个 Bundle 在同一源码树中依次增量构建 Core、Standard、Standard USB、Ultra 中符合设备条件的功能集，复用下载、工具链、内核与软件包编译结果。矩阵生成器会拒绝清单中超出上述芯片族的条目，防止旧清单或误配置扩大构建范围。
+CI 按目标、IPQ60xx 内核分区等级和最多 25 个设备一组生成 Bundle 矩阵，避免“每设备、每功能集一个 Job”造成大量重复编译。6 MiB 与大内核分区设备不会进入同一 Bundle：前者使用紧凑内核，后者不受其裁减影响。每个 Bundle 在同一源码树中依次增量构建 Core、Standard、Standard USB、Ultra 中符合设备条件的功能集，复用下载、工具链、内核与软件包编译结果。矩阵生成器会拒绝清单中超出上述芯片族的条目，防止旧清单或误配置扩大构建范围。
 
 ## 上游仓库
 
@@ -84,7 +86,7 @@ MediaTek Pro 使用 SDK/闭源驱动栈，目前只为闭源 `mt_wifi` 支持的
 
 - 四个工作流分别按平台、Open/Pro 与 LTS/Edge 发布；某个分片失败不会阻止其他产品线或已完成固件发布。
 - 单个 Bundle 中某个高功能集失败时，已经完成的较低功能集仍会上传，便于下载和针对失败变种重试。
-- 当前完整矩阵为 **48 个 Bundle Job**，替代原先按功能集拆分的 117 个 Job。
+- 完整矩阵按设备目标、通道、产品线和 IPQ60xx 内核分区等级动态拆分 Bundle Job。
 - `config/devices.tsv` 是 CI 的设备/版本/功能集数据源，`DEVICES.md` 由同一清单生成。
 - 更新上游设备清单时按 `scripts/update-device-catalog.py --help` 提供五个上游工作树路径，再提交两份生成文件。
 

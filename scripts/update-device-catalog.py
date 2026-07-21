@@ -72,7 +72,16 @@ def parse_blocks(path: pathlib.Path) -> dict[str, dict[str, str]]:
                 else:
                     values.setdefault(key, value)
         normalized = re.sub(r"\\\n\s*", " ", body)
-        for key in ("DEVICE_VENDOR", "DEVICE_MODEL", "DEVICE_VARIANT", "DEVICE_DTS", "SOC", "IMAGE_SIZE", "DEVICE_PACKAGES"):
+        for key in (
+            "DEVICE_VENDOR",
+            "DEVICE_MODEL",
+            "DEVICE_VARIANT",
+            "DEVICE_DTS",
+            "SOC",
+            "IMAGE_SIZE",
+            "KERNEL_SIZE",
+            "DEVICE_PACKAGES",
+        ):
             matches = re.findall(rf"^\s*{key}\s*:?=\s*(.*?)\s*$", normalized, re.M)
             if matches:
                 values[key] = matches[-1].strip()
@@ -90,14 +99,25 @@ def pretty_name(device: str, values: dict[str, str]) -> str:
     return " ".join(parts) if parts else device.replace("_", " ")
 
 
-def image_kib(values: dict[str, str]) -> int | None:
-    value = values.get("IMAGE_SIZE", "")
+def size_kib(value: str) -> int | None:
     match = re.fullmatch(r"(\d+)([kKmM]?)", value)
     if not match:
         return None
     size = int(match.group(1))
     unit = match.group(2).lower()
     return size * 1024 if unit == "m" else size
+
+
+def image_kib(values: dict[str, str]) -> int | None:
+    return size_kib(values.get("IMAGE_SIZE", ""))
+
+
+def kernel_profile(subtarget: str, values: dict[str, str]) -> str:
+    if subtarget != "ipq60xx":
+        return "kernel-default"
+    if size_kib(values.get("KERNEL_SIZE", "")) == 6144:
+        return "kernel-6m"
+    return "kernel-large"
 
 
 def infer_soc(subtarget: str, device: str, values: dict[str, str]) -> str:
@@ -167,13 +187,25 @@ def collect(ns: argparse.Namespace) -> list[dict[str, str]]:
                         "edition": edition,
                         "channel": channel,
                         "max_feature": max_feature(platform, subtarget, device, values),
+                        "kernel_profile": kernel_profile(subtarget, values),
                     }
                 )
     return sorted(rows, key=lambda row: tuple(row[key] for key in ("platform", "target", "subtarget", "device", "edition", "channel")))
 
 
 def write_tsv(rows: list[dict[str, str]], output: pathlib.Path) -> None:
-    columns = ("platform", "target", "subtarget", "device", "name", "soc", "edition", "channel", "max_feature")
+    columns = (
+        "platform",
+        "target",
+        "subtarget",
+        "device",
+        "name",
+        "soc",
+        "edition",
+        "channel",
+        "max_feature",
+        "kernel_profile",
+    )
     lines = ["\t".join(columns)]
     for row in rows:
         lines.append("\t".join(row[column].replace("\t", " ") for column in columns))
@@ -184,8 +216,12 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
     merged: dict[tuple[str, str, str, str], dict[str, object]] = {}
     for row in rows:
         key = (row["platform"], row["subtarget"], row["device"], row["name"])
-        item = merged.setdefault(key, {"soc": row["soc"], "versions": set(), "feature": "core"})
+        item = merged.setdefault(
+            key,
+            {"soc": row["soc"], "versions": set(), "feature": "core", "kernel_profiles": set()},
+        )
         item["versions"].add(f'{row["edition"]}-{row["channel"]}')
+        item["kernel_profiles"].add(row["kernel_profile"])
         if FEATURE_RANK[row["max_feature"]] > FEATURE_RANK[str(item["feature"])]:
             item["feature"] = row["max_feature"]
 
@@ -210,6 +246,7 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
         "- 功能集逐级包含；表格按设备当前允许的最高功能集归类。",
         "- IPQ817x 设备归入上游 `ipq807x` 子目标。IPQ95xx 当前有 IPQ9570/IPQ9574 profile；IPQ9554 仍需等待上游加入具体设备 profile。",
         "- MT798x Open 覆盖 Filogic 上游全部 profile；Pro 闭源 `mt_wifi` 当前仅支持 MT7981/MT7986。",
+        "- IPQ60xx 按内核分区拆分构建：`kernel-6m` 使用紧凑内核配置，`kernel-large` 保留上游完整内核能力。",
         "",
         "## 当前设备范围",
         "",
@@ -238,8 +275,8 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
             [
                 f'## {FEATURE_LABELS[feature]}（{len(entries)} 个设备 profile）',
                 "",
-                "| 平台/子目标 | 设备代号 | 设备名 | SoC | Open LTS | Open Edge | Pro LTS | Pro Edge |",
-                "|---|---|---|---|:---:|:---:|:---:|:---:|",
+                "| 平台/子目标 | 设备代号 | 设备名 | SoC | 内核分区 | Open LTS | Open Edge | Pro LTS | Pro Edge |",
+                "|---|---|---|---|---|:---:|:---:|:---:|:---:|",
             ]
         )
         for (platform, subtarget, device, name), item in entries:
@@ -247,7 +284,11 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
             support = ["✅" if version in versions else "❌" for version, _label in VERSION_COLUMNS]
             safe_name = name.replace("|", "\\|")
             safe_soc = str(item["soc"]).replace("|", "\\|")
-            lines.append(f"| {platform}/{subtarget} | `{device}` | {safe_name} | {safe_soc} | {' | '.join(support)} |")
+            kernel_profiles = ", ".join(sorted(str(value) for value in item["kernel_profiles"]))
+            lines.append(
+                f"| {platform}/{subtarget} | `{device}` | {safe_name} | {safe_soc} | "
+                f"{kernel_profiles} | {' | '.join(support)} |"
+            )
         lines.append("")
     output.write_text("\n".join(lines), encoding="utf-8")
 

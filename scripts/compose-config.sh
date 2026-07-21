@@ -9,6 +9,12 @@ edition="${5:?edition is required}"
 feature_set="${6:?feature set is required}"
 devices="${7:?device list is required}"
 soc="${8:-all}"
+kernel_profile="${9:?kernel profile is required}"
+
+case "$platform:$subtarget:$kernel_profile" in
+  qcom:ipq60xx:kernel-6m|qcom:ipq60xx:kernel-large|*:kernel-default) ;;
+  *) echo "Invalid kernel profile for $platform/$subtarget: $kernel_profile" >&2; exit 1 ;;
+esac
 
 {
   printf 'CONFIG_TARGET_%s=y\n' "$target"
@@ -90,7 +96,7 @@ esac
 # AF_XDP, netkit, sockmap stream parsing or ARM branch sampling.
 # Keep every override in this target-only block so larger Qualcomm targets
 # retain their upstream diagnostics and optional BPF facilities.
-if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$feature_set" != core ]]; then
+if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == kernel-6m && "$feature_set" != core ]]; then
   printf '%s\n' \
     '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' \
     'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' \

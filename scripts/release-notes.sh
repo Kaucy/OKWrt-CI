@@ -43,6 +43,7 @@ cat > "$output" <<'EOF'
 ## 固件文件怎么选
 
 - `core--`、`standard--`、`standard-usb--`、`ultra--` 表示功能集。
+- IPQ60xx 文件中的 `kernel-6m--` 表示设备只有 6 MiB 内核分区并使用紧凑内核；`kernel-large--` 表示较大或动态内核分区并保留上游完整内核能力。两类固件不可按文件名互相替换。
 - `*-sysupgrade.bin` / `*-sysupgrade.itb`：从兼容的 OpenWrt 系统升级时使用。
 - `*-factory.bin` / `*-factory.ubi`：仅在设备安装说明明确要求从原厂系统刷入时使用。
 - `.itb` 与 `.bin` 由上游设备 profile 决定，并非每台设备都会同时提供两种格式；不要自行改扩展名或互相转换。

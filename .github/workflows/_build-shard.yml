@@ -47,7 +47,7 @@ jobs:
           echo "$builds" | jq .
 
   build:
-    name: ${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.channel }}-${{ matrix.soc }}-bundle-${{ matrix.chunk }}
+    name: ${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.channel }}-${{ matrix.soc }}-${{ matrix.kernel_profile }}-bundle-${{ matrix.chunk }}
     needs: matrix
     runs-on: ubuntu-22.04
     timeout-minutes: 360
@@ -138,13 +138,13 @@ jobs:
           scripts/build-feature-bundle.sh /workdir/openwrt \
             '${{ matrix.platform }}' '${{ matrix.target }}' '${{ matrix.subtarget }}' \
             '${{ matrix.edition }}' '${{ matrix.channel }}' '${{ matrix.devices }}' \
-            '${{ matrix.soc }}' '${{ matrix.chunk }}'
+            '${{ matrix.soc }}' '${{ matrix.kernel_profile }}' '${{ matrix.chunk }}'
 
       - name: Upload feature bundle
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: okwrt-bundle-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.soc }}-part${{ matrix.chunk }}
+          name: okwrt-bundle-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.soc }}-${{ matrix.kernel_profile }}-part${{ matrix.chunk }}
           path: upload/
           retention-days: 14
           if-no-files-found: error
@@ -230,6 +230,13 @@ jobs:
                 gh release create "$tag" --target "$GITHUB_SHA" \
                   --title "$title" --notes-file "$notes" --latest=false
               fi
+              # The file-name schema can change (for example IPQ60xx gained
+              # kernel-6m/kernel-large markers).  A complete matrix is the
+              # authoritative catalog, so remove stale assets before upload.
+              while IFS= read -r stale_asset; do
+                [[ -n "$stale_asset" ]] || continue
+                gh release delete-asset "$tag" "$stale_asset" --yes
+              done < <(gh release view "$tag" --json assets --jq '.assets[].name')
               gh release upload "$tag" "$family_dir"/* --clobber
               gh release edit "$tag" --title "$title" --notes-file "$notes"
             done

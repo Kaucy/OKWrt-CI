@@ -4,6 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 bundle="$root/scripts/build-feature-bundle.sh"
 compose="$root/scripts/compose-config.sh"
+matrix="$root/scripts/generate-matrix.sh"
 install_packages="$root/scripts/install-packages.sh"
 mtk_config="$root/config/edition/mtk-pro.config"
 standard_config="$root/config/features/standard.config"
@@ -27,7 +28,7 @@ grep -Fq 'make tools/meson/compile -j1 V=s' "$bundle"
 grep -Fq "printf 'CONFIG_TARGET_MULTI_PROFILE=y" "$compose"
 grep -Fq "printf 'CONFIG_TARGET_DEVICE_%s_%s_DEVICE_%s=y" "$compose"
 ! grep -Fq "printf 'CONFIG_TARGET_%s_%s_DEVICE_%s=y" "$compose"
-grep -Fq '[[ "$platform" == qcom && "$subtarget" == ipq60xx && "$feature_set" != core ]]' "$compose"
+grep -Fq '[[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == kernel-6m && "$feature_set" != core ]]' "$compose"
 grep -Fq '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' "$compose"
 grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$compose"
 grep -Fq '# CONFIG_KERNEL_KALLSYMS is not set' "$compose"
@@ -40,6 +41,7 @@ grep -Fq '# CONFIG_KERNEL_ELF_CORE is not set' "$compose"
 grep -Fq 'ln -s /usr/bin/openssl staging_dir/host/bin/openssl' "$bundle"
 grep -Fq '041-mt-wifi-ap-only-sae-guards.patch' "$compose"
 grep -Fq 'group: okwrt-${{ inputs.platform }}-${{ inputs.edition }}-${{ inputs.scope }}-${{ github.ref }}' "$shard_workflow"
+grep -Fq 'gh release delete-asset "$tag" "$stale_asset" --yes' "$shard_workflow"
 [[ "$(grep -Fc '+#include "rt_config.h"' "$mtk_ap_patch")" -eq 4 ]]
 grep -Fq -- $'-\t\tnetif_rx_ni(pOSPkt);' "$mtk_ap_patch"
 grep -Fq -- $'+\t\tnetif_rx(pOSPkt);' "$mtk_ap_patch"
@@ -112,6 +114,7 @@ grep -Fq 'make -j1 V=s' "$bundle"
 grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --max-size=1G' "$bundle"
 grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --cleanup' "$bundle"
 grep -Fq 'rm -f "$out/sha256sums" "$out/SHA256SUMS"' "$bundle"
+grep -Fq 'kernel_profile=$kernel_profile' "$bundle"
 grep -Fxq 'CONFIG_MTK_MT_WIFI=m' "$mtk_config"
 grep -Fxq 'CONFIG_MTK_WIFI_MODE_AP=m' "$mtk_config"
 grep -Fxq 'CONFIG_MTK_MT_AP_SUPPORT=m' "$mtk_config"
@@ -141,5 +144,29 @@ daed_line="$(grep -nF 'make package/feeds/packages/daed/compile -j1 V=s' "$bundl
   echo 'daed retry must run after the first world build' >&2
   exit 1
 }
+
+kernel_config_fixture="$(mktemp -d)"
+matrix_fixture="$(mktemp -d)"
+trap 'rm -rf "$kernel_config_fixture" "$matrix_fixture"' EXIT
+mkdir -p "$kernel_config_fixture/kernel-6m" "$kernel_config_fixture/kernel-large"
+GITHUB_WORKSPACE="$root" "$compose" "$kernel_config_fixture/kernel-6m" \
+  qcom qualcommax ipq60xx open standard jdcloud_re-cs-02 all kernel-6m
+GITHUB_WORKSPACE="$root" "$compose" "$kernel_config_fixture/kernel-large" \
+  qcom qualcommax ipq60xx open standard linksys_mr7500 all kernel-large
+grep -Fxq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-6m/.config"
+! grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-large/.config"
+
+mkdir -p "$matrix_fixture/config"
+cat > "$matrix_fixture/config/devices.tsv" <<'EOF'
+platform	target	subtarget	device	name	soc	edition	channel	max_feature	kernel_profile
+qcom	qualcommax	ipq60xx	jdcloud_re-cs-02	JDCloud RE-CS-02	ipq6010	open	edge	ultra	kernel-6m
+qcom	qualcommax	ipq60xx	linksys_mr7500	Linksys MR7500	ipq6018	open	edge	standard-usb	kernel-large
+EOF
+full_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" all edge qcom open)"
+smoke_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" smoke edge qcom open)"
+for generated in "$full_matrix" "$smoke_matrix"; do
+  jq -e '[.include[].kernel_profile] | sort == ["kernel-6m", "kernel-large"]' <<< "$generated" >/dev/null
+  jq -e 'all(.include[]; (.kernel_profile == "kernel-6m" and .devices == "jdcloud_re-cs-02") or (.kernel_profile == "kernel-large" and .devices == "linksys_mr7500"))' <<< "$generated" >/dev/null
+done
 
 echo 'Build bundle regression checks passed.'
