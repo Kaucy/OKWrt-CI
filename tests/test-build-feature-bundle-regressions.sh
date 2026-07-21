@@ -78,6 +78,11 @@ grep -Fq '#if defined(DOT11_SAE_SUPPORT) || defined(SUPP_SAE_SUPPORT)' "$mtk_ap_
 grep -Fq 'struct _RTMP_ADAPTER *pAd = (struct _RTMP_ADAPTER *)wdev->sys_handle;' "$mtk_ap_patch"
 grep -Fq '+#endif /* DOT11_SAE_SUPPORT */' "$mtk_ap_patch"
 grep -Fq '+#ifdef DOT11R_FT_SUPPORT' "$mtk_ap_patch"
+# WHNAT can be enabled without MAP/MWDS, so the vendor routing table and its
+# declaration do not exist.  Keep the roaming cleanup behind the same guard.
+grep -Fq -- '--- a/mt_wifi/embedded/fsm/ap_mgmt_assoc.c' "$mtk_ap_patch"
+grep -Fq '+#ifdef ROUTING_TAB_SUPPORT' "$mtk_ap_patch"
+grep -Fq '+#endif /* ROUTING_TAB_SUPPORT */' "$mtk_ap_patch"
 # Move only the FT-specific brace behind its guard; keep the WPA2 block closed.
 grep -Fzq -- $'+#ifdef DOT11R_FT_SUPPORT\n \t\t\t\t}\n-\t\t\t}\n+#endif\n+\t\t\t}' "$mtk_ap_patch"
 grep -Fq "s/+python3-pkg-resources[[:space:]]*//" "$install_packages"
