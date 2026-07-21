@@ -93,7 +93,9 @@ esac
 # use.  Keep BTF, BPF events, kprobes/ftrace and the device KERNEL_SIZE
 # unchanged.  Module symbol resolution uses the exported symbol table rather
 # than CONFIG_KALLSYMS.  dae attaches at tc/cgroup hooks; it does not use
-# AF_XDP, netkit, sockmap stream parsing or ARM branch sampling.
+# AF_XDP, netkit, sockmap stream parsing, debugfs or ARM hardware performance
+# monitoring.  PERF_EVENTS itself stays enabled for BPF events; only the PMU
+# driver and its debugfs interface are removed from the 6 MiB image.
 # Keep every override in this target-only block so larger Qualcomm targets
 # retain their upstream diagnostics and optional BPF facilities.
 if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == kernel-6m && "$feature_set" != core ]]; then
@@ -101,6 +103,9 @@ if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == ker
     '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' \
     'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' \
     '# CONFIG_KERNEL_KALLSYMS is not set' \
+    '# CONFIG_KERNEL_DEBUG_FS is not set' \
+    '# CONFIG_KERNEL_ARM_PMU is not set' \
+    '# CONFIG_KERNEL_ARM_PMUV3 is not set' \
     '# CONFIG_KERNEL_ARM64_BRBE is not set' \
     '# CONFIG_KERNEL_BPF_STREAM_PARSER is not set' \
     '# CONFIG_KERNEL_NETKIT is not set' \

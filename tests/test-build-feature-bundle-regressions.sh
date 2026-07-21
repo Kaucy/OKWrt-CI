@@ -32,6 +32,9 @@ grep -Fq '[[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile"
 grep -Fq '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' "$compose"
 grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$compose"
 grep -Fq '# CONFIG_KERNEL_KALLSYMS is not set' "$compose"
+grep -Fq '# CONFIG_KERNEL_DEBUG_FS is not set' "$compose"
+grep -Fq '# CONFIG_KERNEL_ARM_PMU is not set' "$compose"
+grep -Fq '# CONFIG_KERNEL_ARM_PMUV3 is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_ARM64_BRBE is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_BPF_STREAM_PARSER is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_NETKIT is not set' "$compose"
@@ -154,7 +157,13 @@ GITHUB_WORKSPACE="$root" "$compose" "$kernel_config_fixture/kernel-6m" \
 GITHUB_WORKSPACE="$root" "$compose" "$kernel_config_fixture/kernel-large" \
   qcom qualcommax ipq60xx open standard linksys_mr7500 all kernel-large
 grep -Fxq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-6m/.config"
+grep -Fxq '# CONFIG_KERNEL_DEBUG_FS is not set' "$kernel_config_fixture/kernel-6m/.config"
+grep -Fxq '# CONFIG_KERNEL_ARM_PMU is not set' "$kernel_config_fixture/kernel-6m/.config"
+grep -Fxq '# CONFIG_KERNEL_ARM_PMUV3 is not set' "$kernel_config_fixture/kernel-6m/.config"
 ! grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-large/.config"
+! grep -Fq '# CONFIG_KERNEL_DEBUG_FS is not set' "$kernel_config_fixture/kernel-large/.config"
+! grep -Fq '# CONFIG_KERNEL_ARM_PMU is not set' "$kernel_config_fixture/kernel-large/.config"
+! grep -Fq '# CONFIG_KERNEL_ARM_PMUV3 is not set' "$kernel_config_fixture/kernel-large/.config"
 
 mkdir -p "$matrix_fixture/config"
 cat > "$matrix_fixture/config/devices.tsv" <<'EOF'
