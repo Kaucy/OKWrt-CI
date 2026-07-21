@@ -330,6 +330,25 @@ service layer is absent.
  		}
  #endif /* DOT11W_PMF_SUPPORT */
 
+--- a/mt_wifi/embedded/fsm/ap_mgmt_assoc.c
++++ b/mt_wifi/embedded/fsm/ap_mgmt_assoc.c
+@@ -3085,6 +3085,7 @@
+ 
+ #ifdef WHNAT_SUPPORT
+ #ifdef CONFIG_FAST_NAT_SUPPORT
++#ifdef ROUTING_TAB_SUPPORT
+ 	if (pAd->CommonCfg.whnat_en) {
+ 		if (StatusCode == MLME_SUCCESS && (pEntry->Sst == SST_ASSOC)) {
+ 			UCHAR i;
+@@ -3102,6 +3103,7 @@
+ 		}
+ 	}
+ #endif
++#endif /* ROUTING_TAB_SUPPORT */
+ #endif
+ 	/* For re-assoc resp pkt when FT is enabled along with Beacon Protection
+ 	 * the packet size go beyong to 512 due to which re assoc resp packet
+
 --- a/mt_wifi/embedded/fsm/sta_mgmt_sync.c
 +++ b/mt_wifi/embedded/fsm/sta_mgmt_sync.c
 @@ -1014,0 +1015 @@ BOOLEAN sta_peer_beacon_req_sanity(
