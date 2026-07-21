@@ -83,11 +83,14 @@ esac
 # Several IPQ60xx NOR/eMMC profiles have a real 6 MiB kernel partition.  BTF
 # is required by daed in Standard and above, but the target's performance-
 # optimized kernel plus BTF exceeds that immutable partition.  Optimize code
-# size for these feature sets; keep BTF and the device KERNEL_SIZE unchanged.
+# size and drop the diagnostic kallsyms table for these feature sets; keep BTF
+# and the device KERNEL_SIZE unchanged.  Module symbol resolution uses the
+# exported symbol table rather than CONFIG_KALLSYMS.
 if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$feature_set" != core ]]; then
   printf '%s\n' \
     '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' \
-    'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' >> "$topdir/.config"
+    'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' \
+    '# CONFIG_KERNEL_KALLSYMS is not set' >> "$topdir/.config"
 fi
 
 # LibWrt 的 QCA NSS 补丁新增了一个没有 OpenWrt 顶层 CONFIG_KERNEL_ 映射的
