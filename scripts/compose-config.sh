@@ -88,6 +88,8 @@ esac
 # unchanged.  Module symbol resolution uses the exported symbol table rather
 # than CONFIG_KALLSYMS.  dae attaches at tc/cgroup hooks; it does not use
 # AF_XDP, netkit, sockmap stream parsing or ARM branch sampling.
+# Keep every override in this target-only block so larger Qualcomm targets
+# retain their upstream diagnostics and optional BPF facilities.
 if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$feature_set" != core ]]; then
   printf '%s\n' \
     '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' \
