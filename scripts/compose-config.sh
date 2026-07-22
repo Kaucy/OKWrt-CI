@@ -93,28 +93,19 @@ esac
 # use.  Keep vmlinux BTF, BPF events, kprobes/ftrace, cgroup BPF and the device
 # KERNEL_SIZE unchanged.  Module symbol resolution uses the exported symbol
 # table rather than CONFIG_KALLSYMS.  dae attaches at tc/cgroup hooks; it does
-# not use AF_XDP, netkit, sockmap stream parsing, module BTF, RDMA cgroups or
-# ARM hardware performance monitoring.  PERF_EVENTS itself stays enabled for
-# BPF events.  OpenWrt normally forces the two ARM PMU drivers via Kconfig
-# selects, so remove only those selectors in this kernel-6m source shard before
-# applying the normal top-level overrides.
+# not use AF_XDP, netkit, sockmap stream parsing, module BTF or RDMA cgroups.
+# Keep PERF_EVENTS and the ARM PMU drivers selected by KPROBES: overriding a
+# selected OpenWrt Kconfig symbol leaves the generated Linux configuration
+# incomplete.  MPTCP is optional and costs about 214 KiB compressed upstream,
+# so omit it only from the immutable 6 MiB kernel profile.
 # Keep every override in this target-only block so larger Qualcomm targets
 # retain their upstream diagnostics and optional BPF facilities.
 if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == kernel-6m && "$feature_set" != core ]]; then
-  kernel_menu="$topdir/config/Config-kernel.in"
-  grep -Fqx 'config KERNEL_ARM_PMU' "$kernel_menu"
-  grep -Fqx 'config KERNEL_ARM_PMUV3' "$kernel_menu"
-  sed -i \
-    -e '/^[[:space:]]*select KERNEL_ARM_PMU if (arm || aarch64)$/d' \
-    -e '/^[[:space:]]*select KERNEL_ARM_PMUV3 if (arm_v7 || aarch64)$/d' \
-    "$kernel_menu"
-
   printf '%s\n' \
     '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' \
     'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' \
     '# CONFIG_KERNEL_KALLSYMS is not set' \
-    '# CONFIG_KERNEL_ARM_PMU is not set' \
-    '# CONFIG_KERNEL_ARM_PMUV3 is not set' \
+    '# CONFIG_KERNEL_DEBUG_FS is not set' \
     '# CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES is not set' \
     '# CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH is not set' \
     '# CONFIG_KERNEL_CGROUP_RDMA is not set' \
@@ -122,6 +113,8 @@ if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == ker
     '# CONFIG_KERNEL_BPF_STREAM_PARSER is not set' \
     '# CONFIG_KERNEL_NETKIT is not set' \
     '# CONFIG_KERNEL_XDP_SOCKETS is not set' \
+    '# CONFIG_KERNEL_MPTCP is not set' \
+    '# CONFIG_KERNEL_MPTCP_IPV6 is not set' \
     '# CONFIG_KERNEL_MAGIC_SYSRQ is not set' \
     '# CONFIG_KERNEL_ELF_CORE is not set' >> "$topdir/.config"
 fi
