@@ -111,6 +111,13 @@ grep -Fxq 'CONFIG_KERNEL_XDP_SOCKETS=y' "$standard_config"
 grep -Fq 'Required Standard package is missing from $variant: $package' "$bundle"
 grep -Fq 'luci-app-daed daed daed-geoip daed-geosite' "$bundle"
 grep -Fq -- '-size +1M' "$bundle"
+grep -Fq 'find "$out" -maxdepth 1 -type f -iname '\''*initramfs*'\'' -delete' "$bundle"
+initramfs_prune_line="$(grep -nF 'find "$out" -maxdepth 1 -type f -iname '\''*initramfs*'\'' -delete' "$bundle" | cut -d: -f1)"
+checksum_line="$(grep -nF '(cd "$out" && sha256sum -- * > SHA256SUMS)' "$bundle" | cut -d: -f1)"
+((initramfs_prune_line < checksum_line)) || {
+  echo 'initramfs images must be removed before artifact checksums are generated' >&2
+  exit 1
+}
 for feature in core standard standard-usb ultra; do
   grep -Fq -- "-$feature-part\${{ matrix.chunk }}" "$root/.github/workflows/_build-shard.yml"
   grep -Fq -- "upload/*-$feature-part\${{ matrix.chunk }}/" "$root/.github/workflows/_build-shard.yml"

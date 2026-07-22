@@ -180,6 +180,11 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
 
     test -d "$target_dir"
     find "$target_dir" -maxdepth 1 -type f -exec cp {} "$out/" \;
+    # Initramfs images are recovery/boot diagnostics, not installable firmware.
+    # Keeping them beside the real images can make a single Ultra artifact
+    # exceed the independent-download limit without adding a release asset.
+    # Remove them before generating the authoritative artifact checksum list.
+    find "$out" -maxdepth 1 -type f -iname '*initramfs*' -delete
     if [[ "$feature" != core ]]; then
       shopt -s nullglob
       manifests=("$out"/*.manifest)
