@@ -93,7 +93,10 @@ esac
 # use.  Keep vmlinux BTF, BPF events, kprobes/ftrace, cgroup BPF and the device
 # KERNEL_SIZE unchanged.  Module symbol resolution uses the exported symbol
 # table rather than CONFIG_KALLSYMS.  dae attaches at tc/cgroup hooks; it does
-# not use AF_XDP, netkit, sockmap stream parsing, module BTF or RDMA cgroups.
+# not use netkit, sockmap stream parsing, module BTF or RDMA cgroups.  Keep XDP
+# sockets enabled because the upstream daed package has a hard dependency on
+# kmod-xdp-sockets-diag; disabling it makes defconfig silently drop daed and
+# luci-app-daed from every Standard-capable image.
 # Keep PERF_EVENTS and the ARM PMU drivers selected by KPROBES: overriding a
 # selected OpenWrt Kconfig symbol leaves the generated Linux configuration
 # incomplete.  MPTCP is optional and costs about 214 KiB compressed upstream,
@@ -112,7 +115,6 @@ if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == ker
     '# CONFIG_KERNEL_ARM64_BRBE is not set' \
     '# CONFIG_KERNEL_BPF_STREAM_PARSER is not set' \
     '# CONFIG_KERNEL_NETKIT is not set' \
-    '# CONFIG_KERNEL_XDP_SOCKETS is not set' \
     '# CONFIG_KERNEL_MPTCP is not set' \
     '# CONFIG_KERNEL_MPTCP_IPV6 is not set' \
     '# CONFIG_KERNEL_MAGIC_SYSRQ is not set' \
