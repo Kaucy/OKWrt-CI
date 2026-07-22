@@ -32,9 +32,11 @@ grep -Fq '[[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile"
 grep -Fq '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' "$compose"
 grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$compose"
 grep -Fq '# CONFIG_KERNEL_KALLSYMS is not set' "$compose"
-grep -Fq '# CONFIG_KERNEL_DEBUG_FS is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_ARM_PMU is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_ARM_PMUV3 is not set' "$compose"
+grep -Fq '# CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES is not set' "$compose"
+grep -Fq '# CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH is not set' "$compose"
+grep -Fq '# CONFIG_KERNEL_CGROUP_RDMA is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_ARM64_BRBE is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_BPF_STREAM_PARSER is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_NETKIT is not set' "$compose"
@@ -151,19 +153,40 @@ daed_line="$(grep -nF 'make package/feeds/packages/daed/compile -j1 V=s' "$bundl
 kernel_config_fixture="$(mktemp -d)"
 matrix_fixture="$(mktemp -d)"
 trap 'rm -rf "$kernel_config_fixture" "$matrix_fixture"' EXIT
-mkdir -p "$kernel_config_fixture/kernel-6m" "$kernel_config_fixture/kernel-large"
+for fixture_topdir in \
+  "$kernel_config_fixture/kernel-6m" \
+  "$kernel_config_fixture/kernel-large"; do
+  mkdir -p "$fixture_topdir/config"
+  cat > "$fixture_topdir/config/Config-kernel.in" <<'EOF'
+config KERNEL_ARM_PMU
+	bool
+
+config KERNEL_ARM_PMUV3
+	bool
+
+config KERNEL_PERF_EVENTS
+	bool
+	select KERNEL_ARM_PMU if (arm || aarch64)
+	select KERNEL_ARM_PMUV3 if (arm_v7 || aarch64)
+EOF
+done
 GITHUB_WORKSPACE="$root" "$compose" "$kernel_config_fixture/kernel-6m" \
   qcom qualcommax ipq60xx open standard jdcloud_re-cs-02 all kernel-6m
 GITHUB_WORKSPACE="$root" "$compose" "$kernel_config_fixture/kernel-large" \
   qcom qualcommax ipq60xx open standard linksys_mr7500 all kernel-large
 grep -Fxq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-6m/.config"
-grep -Fxq '# CONFIG_KERNEL_DEBUG_FS is not set' "$kernel_config_fixture/kernel-6m/.config"
 grep -Fxq '# CONFIG_KERNEL_ARM_PMU is not set' "$kernel_config_fixture/kernel-6m/.config"
 grep -Fxq '# CONFIG_KERNEL_ARM_PMUV3 is not set' "$kernel_config_fixture/kernel-6m/.config"
+grep -Fxq '# CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES is not set' "$kernel_config_fixture/kernel-6m/.config"
+grep -Fxq '# CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH is not set' "$kernel_config_fixture/kernel-6m/.config"
+grep -Fxq '# CONFIG_KERNEL_CGROUP_RDMA is not set' "$kernel_config_fixture/kernel-6m/.config"
+! grep -Fq 'select KERNEL_ARM_PMU if' "$kernel_config_fixture/kernel-6m/config/Config-kernel.in"
+! grep -Fq 'select KERNEL_ARM_PMUV3 if' "$kernel_config_fixture/kernel-6m/config/Config-kernel.in"
 ! grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-large/.config"
-! grep -Fq '# CONFIG_KERNEL_DEBUG_FS is not set' "$kernel_config_fixture/kernel-large/.config"
 ! grep -Fq '# CONFIG_KERNEL_ARM_PMU is not set' "$kernel_config_fixture/kernel-large/.config"
 ! grep -Fq '# CONFIG_KERNEL_ARM_PMUV3 is not set' "$kernel_config_fixture/kernel-large/.config"
+grep -Fq 'select KERNEL_ARM_PMU if' "$kernel_config_fixture/kernel-large/config/Config-kernel.in"
+grep -Fq 'select KERNEL_ARM_PMUV3 if' "$kernel_config_fixture/kernel-large/config/Config-kernel.in"
 
 mkdir -p "$matrix_fixture/config"
 cat > "$matrix_fixture/config/devices.tsv" <<'EOF'

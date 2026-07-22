@@ -90,22 +90,34 @@ esac
 # is required by daed in Standard and above, but the target's performance-
 # optimized kernel plus BTF exceeds that immutable partition.  Optimize code
 # size and drop diagnostics plus BTF-triggered facilities that daed does not
-# use.  Keep BTF, BPF events, kprobes/ftrace and the device KERNEL_SIZE
-# unchanged.  Module symbol resolution uses the exported symbol table rather
-# than CONFIG_KALLSYMS.  dae attaches at tc/cgroup hooks; it does not use
-# AF_XDP, netkit, sockmap stream parsing, debugfs or ARM hardware performance
-# monitoring.  PERF_EVENTS itself stays enabled for BPF events; only the PMU
-# driver and its debugfs interface are removed from the 6 MiB image.
+# use.  Keep vmlinux BTF, BPF events, kprobes/ftrace, cgroup BPF and the device
+# KERNEL_SIZE unchanged.  Module symbol resolution uses the exported symbol
+# table rather than CONFIG_KALLSYMS.  dae attaches at tc/cgroup hooks; it does
+# not use AF_XDP, netkit, sockmap stream parsing, module BTF, RDMA cgroups or
+# ARM hardware performance monitoring.  PERF_EVENTS itself stays enabled for
+# BPF events.  OpenWrt normally forces the two ARM PMU drivers via Kconfig
+# selects, so remove only those selectors in this kernel-6m source shard before
+# applying the normal top-level overrides.
 # Keep every override in this target-only block so larger Qualcomm targets
 # retain their upstream diagnostics and optional BPF facilities.
 if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == kernel-6m && "$feature_set" != core ]]; then
+  kernel_menu="$topdir/config/Config-kernel.in"
+  grep -Fqx 'config KERNEL_ARM_PMU' "$kernel_menu"
+  grep -Fqx 'config KERNEL_ARM_PMUV3' "$kernel_menu"
+  sed -i \
+    -e '/^[[:space:]]*select KERNEL_ARM_PMU if (arm || aarch64)$/d' \
+    -e '/^[[:space:]]*select KERNEL_ARM_PMUV3 if (arm_v7 || aarch64)$/d' \
+    "$kernel_menu"
+
   printf '%s\n' \
     '# CONFIG_KERNEL_CC_OPTIMIZE_FOR_PERFORMANCE is not set' \
     'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' \
     '# CONFIG_KERNEL_KALLSYMS is not set' \
-    '# CONFIG_KERNEL_DEBUG_FS is not set' \
     '# CONFIG_KERNEL_ARM_PMU is not set' \
     '# CONFIG_KERNEL_ARM_PMUV3 is not set' \
+    '# CONFIG_KERNEL_DEBUG_INFO_BTF_MODULES is not set' \
+    '# CONFIG_KERNEL_MODULE_ALLOW_BTF_MISMATCH is not set' \
+    '# CONFIG_KERNEL_CGROUP_RDMA is not set' \
     '# CONFIG_KERNEL_ARM64_BRBE is not set' \
     '# CONFIG_KERNEL_BPF_STREAM_PARSER is not set' \
     '# CONFIG_KERNEL_NETKIT is not set' \
