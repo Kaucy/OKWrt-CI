@@ -140,14 +140,45 @@ jobs:
             '${{ matrix.edition }}' '${{ matrix.channel }}' '${{ matrix.devices }}' \
             '${{ matrix.soc }}' '${{ matrix.kernel_profile }}' '${{ matrix.chunk }}'
 
-      - name: Upload feature bundle
+      # Keep every feature set in its own artifact. Qualcomm Standard+ bundles
+      # can exceed the 512 MiB independent-download limit when combined, which
+      # prevents the post-build firmware and checksum validation required
+      # before a full matrix is published.
+      - name: Upload Core bundle
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: okwrt-bundle-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.soc }}-${{ matrix.kernel_profile }}-part${{ matrix.chunk }}
-          path: upload/
+          name: okwrt-bundle-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.soc }}-${{ matrix.kernel_profile }}-core-part${{ matrix.chunk }}
+          path: upload/*-core-part${{ matrix.chunk }}/
           retention-days: 14
-          if-no-files-found: error
+          if-no-files-found: ignore
+
+      - name: Upload Standard bundle
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: okwrt-bundle-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.soc }}-${{ matrix.kernel_profile }}-standard-part${{ matrix.chunk }}
+          path: upload/*-standard-part${{ matrix.chunk }}/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload Standard USB bundle
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: okwrt-bundle-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.soc }}-${{ matrix.kernel_profile }}-standard-usb-part${{ matrix.chunk }}
+          path: upload/*-standard-usb-part${{ matrix.chunk }}/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload Ultra bundle
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: okwrt-bundle-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ matrix.soc }}-${{ matrix.kernel_profile }}-ultra-part${{ matrix.chunk }}
+          path: upload/*-ultra-part${{ matrix.chunk }}/
+          retention-days: 14
+          if-no-files-found: ignore
 
       - name: Verify bundle completeness
         if: ${{ always() }}

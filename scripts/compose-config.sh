@@ -121,6 +121,33 @@ if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == ker
     '# CONFIG_KERNEL_ELF_CORE is not set' >> "$topdir/.config"
 fi
 
+# Qualcomm's Linux 6.12 target fragment force-enables process and device core
+# dumps after the top-level OpenWrt configuration has disabled ELF core files.
+# They are post-mortem diagnostics, are not used by daed's BPF/XDP path, and
+# account for the remaining small overrun on the immutable 6 MiB profiles.
+# Override the Linux fragments only in the kernel-6m job; kernel-large runs in
+# a separate source tree and retains the upstream coredump facilities.
+if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == kernel-6m ]]; then
+  while IFS= read -r kernel_fragment; do
+    sed -i \
+      -e '/^CONFIG_ALLOW_DEV_COREDUMP=/d' \
+      -e '/^# CONFIG_ALLOW_DEV_COREDUMP is not set$/d' \
+      -e '/^CONFIG_COREDUMP=/d' \
+      -e '/^# CONFIG_COREDUMP is not set$/d' \
+      -e '/^CONFIG_DEV_COREDUMP=/d' \
+      -e '/^# CONFIG_DEV_COREDUMP is not set$/d' \
+      "$kernel_fragment"
+    printf '%s\n' \
+      '# CONFIG_ALLOW_DEV_COREDUMP is not set' \
+      '# CONFIG_COREDUMP is not set' \
+      '# CONFIG_DEV_COREDUMP is not set' >> "$kernel_fragment"
+  done < <(find \
+    "$topdir/target/linux/$target" \
+    "$topdir/target/linux/$target/$subtarget" \
+    -maxdepth 1 -type f \( -name 'config-*' -o -name 'config-default' \) \
+    -print 2>/dev/null | sort -u)
+fi
+
 # LibWrt 的 QCA NSS 补丁新增了一个没有 OpenWrt 顶层 CONFIG_KERNEL_ 映射的
 # 内核选项。它只属于 Qualcomm Pro；Qualcomm Open 使用 ImmortalWrt 源码树。
 if [[ "$platform" == qcom && "$target" == qualcommax && "$edition" == pro ]]; then

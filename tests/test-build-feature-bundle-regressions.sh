@@ -111,6 +111,11 @@ grep -Fxq 'CONFIG_KERNEL_XDP_SOCKETS=y' "$standard_config"
 grep -Fq 'Required Standard package is missing from $variant: $package' "$bundle"
 grep -Fq 'luci-app-daed daed daed-geoip daed-geosite' "$bundle"
 grep -Fq -- '-size +1M' "$bundle"
+for feature in core standard standard-usb ultra; do
+  grep -Fq -- "-$feature-part\${{ matrix.chunk }}" "$root/.github/workflows/_build-shard.yml"
+  grep -Fq -- "upload/*-$feature-part\${{ matrix.chunk }}/" "$root/.github/workflows/_build-shard.yml"
+done
+[[ "$(grep -cF 'uses: actions/upload-artifact@v4' "$root/.github/workflows/_build-shard.yml")" -eq 4 ]]
 grep -Fq 'make package/feeds/packages/daed/compile -j1 V=s' "$bundle"
 grep -Fq 'make package/mtk/drivers/mt_wifi/clean' "$bundle"
 grep -Fq 'make package/mtk/drivers/mt_wifi/compile -j1 V=s' "$bundle"
@@ -158,7 +163,9 @@ trap 'rm -rf "$kernel_config_fixture" "$matrix_fixture"' EXIT
 for fixture_topdir in \
   "$kernel_config_fixture/kernel-6m" \
   "$kernel_config_fixture/kernel-large"; do
-  mkdir -p "$fixture_topdir/config"
+  mkdir -p \
+    "$fixture_topdir/config" \
+    "$fixture_topdir/target/linux/qualcommax/ipq60xx"
   cat > "$fixture_topdir/config/Config-kernel.in" <<'EOF'
 config KERNEL_ARM_PMU
 	bool
@@ -170,6 +177,15 @@ config KERNEL_PERF_EVENTS
 	bool
 	select KERNEL_ARM_PMU if (arm || aarch64)
 	select KERNEL_ARM_PMUV3 if (arm_v7 || aarch64)
+EOF
+  cat > "$fixture_topdir/target/linux/qualcommax/config-6.12" <<'EOF'
+CONFIG_ALLOW_DEV_COREDUMP=y
+CONFIG_COREDUMP=y
+CONFIG_DEV_COREDUMP=y
+EOF
+  cat > "$fixture_topdir/target/linux/qualcommax/ipq60xx/config-default" <<'EOF'
+CONFIG_COREDUMP=y
+CONFIG_DEV_COREDUMP=y
 EOF
 done
 GITHUB_WORKSPACE="$root" "$compose" "$kernel_config_fixture/kernel-6m" \
@@ -186,12 +202,23 @@ grep -Fxq '# CONFIG_KERNEL_MPTCP is not set' "$kernel_config_fixture/kernel-6m/.
 grep -Fxq '# CONFIG_KERNEL_MPTCP_IPV6 is not set' "$kernel_config_fixture/kernel-6m/.config"
 grep -Fq 'select KERNEL_ARM_PMU if' "$kernel_config_fixture/kernel-6m/config/Config-kernel.in"
 grep -Fq 'select KERNEL_ARM_PMUV3 if' "$kernel_config_fixture/kernel-6m/config/Config-kernel.in"
+for kernel_fragment in \
+  "$kernel_config_fixture/kernel-6m/target/linux/qualcommax/config-6.12" \
+  "$kernel_config_fixture/kernel-6m/target/linux/qualcommax/ipq60xx/config-default"; do
+  grep -Fxq '# CONFIG_ALLOW_DEV_COREDUMP is not set' "$kernel_fragment"
+  grep -Fxq '# CONFIG_COREDUMP is not set' "$kernel_fragment"
+  grep -Fxq '# CONFIG_DEV_COREDUMP is not set' "$kernel_fragment"
+  ! grep -Eq '^(CONFIG_ALLOW_DEV_COREDUMP|CONFIG_COREDUMP|CONFIG_DEV_COREDUMP)=y$' "$kernel_fragment"
+done
 ! grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-large/.config"
 ! grep -Fq '# CONFIG_KERNEL_MPTCP is not set' "$kernel_config_fixture/kernel-large/.config"
 ! grep -Fq '# CONFIG_KERNEL_MPTCP_IPV6 is not set' "$kernel_config_fixture/kernel-large/.config"
 grep -Fxq 'CONFIG_KERNEL_XDP_SOCKETS=y' "$kernel_config_fixture/kernel-large/.config"
 grep -Fq 'select KERNEL_ARM_PMU if' "$kernel_config_fixture/kernel-large/config/Config-kernel.in"
 grep -Fq 'select KERNEL_ARM_PMUV3 if' "$kernel_config_fixture/kernel-large/config/Config-kernel.in"
+grep -Fxq 'CONFIG_ALLOW_DEV_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
+grep -Fxq 'CONFIG_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
+grep -Fxq 'CONFIG_DEV_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
 
 mkdir -p "$matrix_fixture/config"
 cat > "$matrix_fixture/config/devices.tsv" <<'EOF'
