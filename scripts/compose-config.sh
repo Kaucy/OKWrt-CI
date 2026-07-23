@@ -121,10 +121,10 @@ if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == ker
     '# CONFIG_KERNEL_ELF_CORE is not set' >> "$topdir/.config"
 fi
 
-# Qualcomm's Linux 6.12 target fragment force-enables process and device core
-# dumps after the top-level OpenWrt configuration has disabled ELF core files.
-# They are post-mortem diagnostics, are not used by daed's BPF/XDP path, and
-# account for the remaining small overrun on the immutable 6 MiB profiles.
+# Qualcomm's Linux 6.12 target fragment force-enables process/device core dumps
+# and verbose BUG file/line strings after the top-level compact profile is
+# composed.  They are post-mortem diagnostics, are not used by daed's BPF/XDP
+# path, and account for the remaining small overrun on immutable 6 MiB profiles.
 # Override the Linux fragments only in the kernel-6m job; kernel-large runs in
 # a separate source tree and retains the upstream coredump facilities.
 if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == kernel-6m ]]; then
@@ -136,11 +136,14 @@ if [[ "$platform" == qcom && "$subtarget" == ipq60xx && "$kernel_profile" == ker
       -e '/^# CONFIG_COREDUMP is not set$/d' \
       -e '/^CONFIG_DEV_COREDUMP=/d' \
       -e '/^# CONFIG_DEV_COREDUMP is not set$/d' \
+      -e '/^CONFIG_DEBUG_BUGVERBOSE=/d' \
+      -e '/^# CONFIG_DEBUG_BUGVERBOSE is not set$/d' \
       "$kernel_fragment"
     printf '%s\n' \
       '# CONFIG_ALLOW_DEV_COREDUMP is not set' \
       '# CONFIG_COREDUMP is not set' \
-      '# CONFIG_DEV_COREDUMP is not set' >> "$kernel_fragment"
+      '# CONFIG_DEV_COREDUMP is not set' \
+      '# CONFIG_DEBUG_BUGVERBOSE is not set' >> "$kernel_fragment"
   done < <(find \
     "$topdir/target/linux/$target" \
     "$topdir/target/linux/$target/$subtarget" \

@@ -44,6 +44,7 @@ grep -Fq '# CONFIG_KERNEL_MPTCP is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_MPTCP_IPV6 is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_MAGIC_SYSRQ is not set' "$compose"
 grep -Fq '# CONFIG_KERNEL_ELF_CORE is not set' "$compose"
+grep -Fq '# CONFIG_DEBUG_BUGVERBOSE is not set' "$compose"
 grep -Fq 'ln -s /usr/bin/openssl staging_dir/host/bin/openssl' "$bundle"
 grep -Fq '041-mt-wifi-ap-only-sae-guards.patch' "$compose"
 grep -Fq 'group: okwrt-${{ inputs.platform }}-${{ inputs.edition }}-${{ inputs.scope }}-${{ github.ref }}' "$shard_workflow"
@@ -189,6 +190,7 @@ EOF
 CONFIG_ALLOW_DEV_COREDUMP=y
 CONFIG_COREDUMP=y
 CONFIG_DEV_COREDUMP=y
+CONFIG_DEBUG_BUGVERBOSE=y
 EOF
   cat > "$fixture_topdir/target/linux/qualcommax/ipq60xx/config-default" <<'EOF'
 CONFIG_COREDUMP=y
@@ -215,7 +217,8 @@ for kernel_fragment in \
   grep -Fxq '# CONFIG_ALLOW_DEV_COREDUMP is not set' "$kernel_fragment"
   grep -Fxq '# CONFIG_COREDUMP is not set' "$kernel_fragment"
   grep -Fxq '# CONFIG_DEV_COREDUMP is not set' "$kernel_fragment"
-  ! grep -Eq '^(CONFIG_ALLOW_DEV_COREDUMP|CONFIG_COREDUMP|CONFIG_DEV_COREDUMP)=y$' "$kernel_fragment"
+  grep -Fxq '# CONFIG_DEBUG_BUGVERBOSE is not set' "$kernel_fragment"
+  ! grep -Eq '^(CONFIG_ALLOW_DEV_COREDUMP|CONFIG_COREDUMP|CONFIG_DEV_COREDUMP|CONFIG_DEBUG_BUGVERBOSE)=y$' "$kernel_fragment"
 done
 ! grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-large/.config"
 ! grep -Fq '# CONFIG_KERNEL_MPTCP is not set' "$kernel_config_fixture/kernel-large/.config"
@@ -226,6 +229,7 @@ grep -Fq 'select KERNEL_ARM_PMUV3 if' "$kernel_config_fixture/kernel-large/confi
 grep -Fxq 'CONFIG_ALLOW_DEV_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
 grep -Fxq 'CONFIG_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
 grep -Fxq 'CONFIG_DEV_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
+grep -Fxq 'CONFIG_DEBUG_BUGVERBOSE=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
 
 mkdir -p "$matrix_fixture/config"
 cat > "$matrix_fixture/config/devices.tsv" <<'EOF'
