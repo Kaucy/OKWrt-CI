@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Adapt Filogic device profiles for the closed MediaTek wireless stack."""
+"""Adapt Filogic profiles before configuring the closed MediaTek wireless stack."""
 
 from __future__ import annotations
 
