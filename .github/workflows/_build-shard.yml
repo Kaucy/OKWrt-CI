@@ -28,6 +28,10 @@ env:
   TZ: Asia/Shanghai
   OKWRT_IP: 192.168.66.1
   OKWRT_USER: root
+  # GitHub's /mnt is a separate ~73 GiB volume. Keep the OpenWrt source and
+  # all build intermediates there so a large Ultra build cannot fill the root
+  # filesystem and terminate the Actions worker itself.
+  OPENWRT_DIR: /mnt/workdir/openwrt
 
 jobs:
   matrix:
@@ -81,8 +85,8 @@ jobs:
             libncurses-dev libssl-dev openssl python3 python3-setuptools rsync swig unzip \
             zlib1g-dev file wget curl jq subversion patch libelf-dev device-tree-compiler \
             python3-pyelftools python3-ply ccache qemu-utils uglifyjs upx-ucl
-          sudo mkdir -p /workdir
-          sudo chown "$USER:$USER" /workdir
+          sudo mkdir -p "$(dirname "$OPENWRT_DIR")"
+          sudo chown "$USER:$USER" "$(dirname "$OPENWRT_DIR")"
           chmod +x scripts/*.sh
 
       - name: Resolve source
@@ -101,8 +105,8 @@ jobs:
           UPSTREAM_REPO: ${{ steps.source.outputs.upstream }}
           SOURCE_BRANCH: ${{ steps.source.outputs.branch }}
         run: |
-          git clone --depth=1 --single-branch --branch "$SOURCE_BRANCH" "$FORK_REPO" /workdir/openwrt
-          cd /workdir/openwrt
+          git clone --depth=1 --single-branch --branch "$SOURCE_BRANCH" "$FORK_REPO" "$OPENWRT_DIR"
+          cd "$OPENWRT_DIR"
           fork_sha="$(git rev-parse HEAD)"
           git remote add canonical "$UPSTREAM_REPO"
           git fetch --depth=1 canonical "$SOURCE_BRANCH"
@@ -118,24 +122,24 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            /workdir/openwrt/.ccache
-            /workdir/openwrt/dl
-            /workdir/openwrt/staging_dir/host*
-            /workdir/openwrt/staging_dir/toolchain-*
-            /workdir/openwrt/build_dir/host*
+            ${{ env.OPENWRT_DIR }}/.ccache
+            ${{ env.OPENWRT_DIR }}/dl
+            ${{ env.OPENWRT_DIR }}/staging_dir/host*
+            ${{ env.OPENWRT_DIR }}/staging_dir/toolchain-*
+            ${{ env.OPENWRT_DIR }}/build_dir/host*
           key: okwrt-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ env.UPSTREAM_SHA }}
           restore-keys: |
             okwrt-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-
 
       - name: Update feeds
-        working-directory: /workdir/openwrt
+        working-directory: ${{ env.OPENWRT_DIR }}
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Build all eligible feature sets
         run: |
-          scripts/build-feature-bundle.sh /workdir/openwrt \
+          scripts/build-feature-bundle.sh "$OPENWRT_DIR" \
             '${{ matrix.platform }}' '${{ matrix.target }}' '${{ matrix.subtarget }}' \
             '${{ matrix.edition }}' '${{ matrix.channel }}' '${{ matrix.devices }}' \
             '${{ matrix.soc }}' '${{ matrix.kernel_profile }}' '${{ matrix.chunk }}'
