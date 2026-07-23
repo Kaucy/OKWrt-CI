@@ -36,7 +36,9 @@ if [[ "$scope" == smoke ]]; then
     [[ "$edition_filter" == all || "$edition_filter" == "$edition" ]] || continue
     smoke_profile=kernel-default
     [[ "$platform:$subtarget" == qcom:ipq60xx ]] && smoke_profile="$kernel_profile"
-    key="$platform|$edition|$channel|$smoke_profile"
+    smoke_soc=all
+    [[ "$platform:$edition" == mtk:pro ]] && smoke_soc="$soc"
+    key="$platform|$edition|$channel|$smoke_profile|$smoke_soc"
     rank="${feature_ranks[$max_feature]}"
     if [[ -z "${selected_rows[$key]:-}" || "$rank" -gt "${selected_ranks[$key]}" ]]; then
       selected_rows[$key]="$platform|$target|$subtarget|$edition|$channel|$soc|$kernel_profile|$device"
