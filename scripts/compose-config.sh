@@ -34,6 +34,14 @@ esac
 if [[ "$platform:$edition" == mtk:pro ]]; then
   case "$soc" in
     mt7981|mt7986)
+      # Pro replaces mt76 with the closed mt_wifi stack. A small number of
+      # upstream profiles still request mt76 modules/firmware directly, which
+      # makes image assembly fail after those packages are disabled. The helper
+      # also gives fixed sub-32 MiB images a compact Core package list; larger
+      # profiles retain the complete common feature set.
+      python3 "$GITHUB_WORKSPACE/scripts/prepare-mtk-pro-profiles.py" \
+        "$topdir/target/linux/mediatek/image/filogic.mk"
+
       # mt_wifi depends on the vendor conninfra module.  The package does not
       # infer its APSOC implementation from CONFIG_MTK_CHIP_*, so leaving this
       # choice unset builds conninfra.ko without the platform OF match table
