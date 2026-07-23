@@ -265,6 +265,8 @@ cat > "$matrix_fixture/config/devices.tsv" <<'EOF'
 platform	target	subtarget	device	name	soc	edition	channel	max_feature	kernel_profile
 qcom	qualcommax	ipq60xx	jdcloud_re-cs-02	JDCloud RE-CS-02	ipq6010	open	edge	ultra	kernel-6m
 qcom	qualcommax	ipq60xx	linksys_mr7500	Linksys MR7500	ipq6018	open	edge	standard-usb	kernel-large
+mtk	mediatek	filogic	mt7981-test	MT7981 Test	mt7981	pro	edge	standard-usb	kernel-default
+mtk	mediatek	filogic	mt7986-test	MT7986 Test	mt7986	pro	edge	standard	kernel-default
 EOF
 full_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" all edge qcom open)"
 smoke_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" smoke edge qcom open)"
@@ -272,5 +274,9 @@ for generated in "$full_matrix" "$smoke_matrix"; do
   jq -e '[.include[].kernel_profile] | sort == ["kernel-6m", "kernel-large"]' <<< "$generated" >/dev/null
   jq -e 'all(.include[]; (.kernel_profile == "kernel-6m" and .devices == "jdcloud_re-cs-02") or (.kernel_profile == "kernel-large" and .devices == "linksys_mr7500"))' <<< "$generated" >/dev/null
 done
+mtk_smoke_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" smoke edge mtk pro)"
+jq -e '[.include[].soc] | sort == ["mt7981", "mt7986"]' <<< "$mtk_smoke_matrix" >/dev/null
+jq -e 'all(.include[]; (.soc == "mt7981" and .devices == "mt7981-test") or (.soc == "mt7986" and .devices == "mt7986-test"))' \
+  <<< "$mtk_smoke_matrix" >/dev/null
 
 echo 'Build bundle regression checks passed.'
