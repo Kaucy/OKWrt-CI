@@ -4,6 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 bundle="$root/scripts/build-feature-bundle.sh"
 compose="$root/scripts/compose-config.sh"
+mtk_profiles="$root/scripts/prepare-mtk-pro-profiles.py"
 matrix="$root/scripts/generate-matrix.sh"
 install_packages="$root/scripts/install-packages.sh"
 mtk_config="$root/config/edition/mtk-pro.config"
@@ -127,6 +128,34 @@ done
 grep -Fq 'make package/feeds/packages/daed/compile -j1 V=s' "$bundle"
 grep -Fq 'make package/mtk/drivers/mt_wifi/clean' "$bundle"
 grep -Fq 'make package/mtk/drivers/mt_wifi/compile -j1 V=s' "$bundle"
+grep -Fq 'prepare-mtk-pro-profiles.py' "$compose"
+python3 -m py_compile "$mtk_profiles"
+
+mtk_profile_fixture="$(mktemp -d)"
+trap 'rm -rf "$mtk_profile_fixture"' EXIT
+cat > "$mtk_profile_fixture/filogic.mk" <<'EOF'
+define Device/large
+  DEVICE_DTS := mt7981b-large
+  IMAGE_SIZE := 65536k
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware kmod-usb3
+endef
+TARGET_DEVICES += large
+
+define Device/small
+  DEVICE_DTS := mt7981b-small
+  IMAGE_SIZE := 15424k
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += small
+EOF
+python3 "$mtk_profiles" "$mtk_profile_fixture/filogic.mk"
+! grep -Eq 'kmod-mt7915e|kmod-mt7981-firmware|mt7981-wo-firmware' \
+  "$mtk_profile_fixture/filogic.mk"
+sed -n '/^define Device\/small$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
+  | grep -Fq 'OKWRT_MTK_PRO_COMPACT_CORE'
+! sed -n '/^define Device\/large$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
+  | grep -Fq 'OKWRT_MTK_PRO_COMPACT_CORE'
+
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/clean' "$bundle"
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/compile -j1 V=s' "$bundle"
 # The post-recovery world run must expose package/install diagnostics.
