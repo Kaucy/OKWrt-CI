@@ -22,6 +22,16 @@ is_firmware() {
 
 while IFS= read -r -d '' metadata; do
   variant_dir="$(dirname "$metadata")"
+  checksum_file="$variant_dir/SHA256SUMS"
+  [[ -f "$checksum_file" ]] || {
+    echo "Artifact checksum list is missing: $checksum_file" >&2
+    exit 1
+  }
+  (
+    cd "$variant_dir"
+    sha256sum -c SHA256SUMS
+  )
+
   channel="$(metadata_value "$metadata" channel)"
   feature="$(metadata_value "$metadata" feature_set)"
   family="$(metadata_value "$metadata" subtarget)"
@@ -49,9 +59,11 @@ while IFS= read -r -d '' metadata; do
   # stable Release, then use the feature prefix to sort assets inside it.
   destination="$output/$channel/$family"
   mkdir -p "$destination"
+  firmware_found=false
   while IFS= read -r -d '' firmware; do
     base="$(basename "$firmware")"
     is_firmware "$base" || continue
+    firmware_found=true
     published="$destination/$feature--$kernel_prefix$base"
     [[ ! -e "$published" ]] || {
       echo "Duplicate Release asset: $published" >&2
@@ -59,6 +71,10 @@ while IFS= read -r -d '' metadata; do
     }
     cp -p "$firmware" "$published"
   done < <(find "$variant_dir" -maxdepth 1 -type f -print0)
+  $firmware_found || {
+    echo "Artifact contains metadata but no publishable firmware: $variant_dir" >&2
+    exit 1
+  }
 done < <(find "$input" -type f -name build-metadata.txt -print0)
 
 while IFS= read -r -d '' family_dir; do
