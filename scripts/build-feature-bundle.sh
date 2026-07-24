@@ -195,7 +195,8 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
       }
       for package in \
         luci-app-homeproxy luci-app-passwall2 \
-        luci-app-daed daed daed-geoip daed-geosite; do
+        luci-app-daed daed daed-geoip daed-geosite \
+        sing-box xray-core v2ray-geoip v2ray-geosite; do
         grep -hEq "^${package} - " "${manifests[@]}" || {
           echo "Required Standard package is missing from $variant: $package" >&2
           exit 1
