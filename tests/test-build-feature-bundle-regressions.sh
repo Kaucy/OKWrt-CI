@@ -117,6 +117,7 @@ grep -Fxq 'CONFIG_KERNEL_BPF_EVENTS=y' "$standard_config"
 grep -Fxq 'CONFIG_KERNEL_XDP_SOCKETS=y' "$standard_config"
 grep -Fq 'Required Standard package is missing from $variant: $package' "$bundle"
 grep -Fq 'luci-app-daed daed daed-geoip daed-geosite' "$bundle"
+grep -Fq 'sing-box xray-core v2ray-geoip v2ray-geosite' "$bundle"
 grep -Fq -- '-size +1M' "$bundle"
 grep -Fq 'find "$out" -maxdepth 1 -type f -iname '\''*initramfs*'\'' -delete' "$bundle"
 initramfs_prune_line="$(grep -nF 'find "$out" -maxdepth 1 -type f -iname '\''*initramfs*'\'' -delete' "$bundle" | cut -d: -f1)"
@@ -268,16 +269,25 @@ grep -Fxq 'CONFIG_DEBUG_BUGVERBOSE=y' "$kernel_config_fixture/kernel-large/targe
 mkdir -p "$matrix_fixture/config"
 cat > "$matrix_fixture/config/devices.tsv" <<'EOF'
 platform	target	subtarget	device	name	soc	edition	channel	max_feature	kernel_profile
+qcom	qualcommax	ipq50xx	ipq50-test	IPQ50 Test	ipq5018	open	edge	standard-usb	kernel-default
 qcom	qualcommax	ipq60xx	jdcloud_re-cs-02	JDCloud RE-CS-02	ipq6010	open	edge	ultra	kernel-6m
 qcom	qualcommax	ipq60xx	linksys_mr7500	Linksys MR7500	ipq6018	open	edge	standard-usb	kernel-large
+qcom	qualcommax	ipq807x	ipq807-test	IPQ807 Test	ipq8074	open	edge	standard-usb	kernel-default
+qcom	qualcommbe	ipq95xx	ipq95-test	IPQ95 Test	ipq9574	open	edge	standard-usb	kernel-default
 mtk	mediatek	filogic	mt7981-test	MT7981 Test	mt7981	pro	edge	standard-usb	kernel-default
 mtk	mediatek	filogic	mt7986-test	MT7986 Test	mt7986	pro	edge	standard	kernel-default
 EOF
 full_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" all edge qcom open)"
 smoke_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" smoke edge qcom open)"
 for generated in "$full_matrix" "$smoke_matrix"; do
-  jq -e '[.include[].kernel_profile] | sort == ["kernel-6m", "kernel-large"]' <<< "$generated" >/dev/null
-  jq -e 'all(.include[]; (.kernel_profile == "kernel-6m" and .devices == "jdcloud_re-cs-02") or (.kernel_profile == "kernel-large" and .devices == "linksys_mr7500"))' <<< "$generated" >/dev/null
+  jq -e '[.include[].subtarget] | sort == ["ipq50xx", "ipq60xx", "ipq60xx", "ipq807x", "ipq95xx"]' \
+    <<< "$generated" >/dev/null
+  jq -e '[.include[] | select(.subtarget == "ipq60xx") | .kernel_profile] | sort == ["kernel-6m", "kernel-large"]' \
+    <<< "$generated" >/dev/null
+  jq -e 'all(.include[] | select(.subtarget == "ipq60xx");
+    (.kernel_profile == "kernel-6m" and .devices == "jdcloud_re-cs-02") or
+    (.kernel_profile == "kernel-large" and .devices == "linksys_mr7500"))' \
+    <<< "$generated" >/dev/null
 done
 mtk_smoke_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" smoke edge mtk pro)"
 jq -e '[.include[].soc] | sort == ["mt7981", "mt7986"]' <<< "$mtk_smoke_matrix" >/dev/null
