@@ -43,6 +43,10 @@ printf diagnostic > "$variant/config.txt"
 printf diagnostic > "$variant/profiles.json"
 printf diagnostic > "$variant/build-failure.log"
 
+for artifact in "$variant" "$ipq60_variant" "$ipq60_large_variant"; do
+  (cd "$artifact" && sha256sum -- * > SHA256SUMS)
+done
+
 "$repo/scripts/prepare-release-assets.sh" "$fixture/input" "$fixture/output"
 
 test -f "$fixture/output/edge/filogic/standard--immortalwrt-device-squashfs-sysupgrade.bin"
@@ -56,3 +60,9 @@ test "$(find "$fixture/output" -type f | wc -l)" -eq 7
 ! find "$fixture/output" -type f \( -name '*kernel*' -o -name '*initramfs*' -o -name '*config*' -o -name '*profiles*' \) | grep -q .
 (cd "$fixture/output/edge/filogic" && sha256sum -c SHA256SUMS-standard.txt)
 (cd "$fixture/output/edge/ipq60xx" && sha256sum -c SHA256SUMS-standard.txt)
+
+printf tampered >> "$variant/immortalwrt-device-squashfs-sysupgrade.bin"
+if "$repo/scripts/prepare-release-assets.sh" "$fixture/input" "$fixture/tampered-output"; then
+  echo 'Tampered artifact unexpectedly passed checksum validation.' >&2
+  exit 1
+fi
