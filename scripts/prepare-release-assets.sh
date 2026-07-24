@@ -63,6 +63,10 @@ while IFS= read -r -d '' metadata; do
   while IFS= read -r -d '' firmware; do
     base="$(basename "$firmware")"
     is_firmware "$base" || continue
+    # Some upstream profiles emit tiny text/link placeholders with a firmware
+    # suffix (observed: a 256-byte factory.bin for Linksys MR5500).  They may
+    # remain in the diagnostic Artifact, but must never reach a Release.
+    (( $(stat -c '%s' "$firmware") > 1048576 )) || continue
     firmware_found=true
     published="$destination/$feature--$kernel_prefix$base"
     [[ ! -e "$published" ]] || {
