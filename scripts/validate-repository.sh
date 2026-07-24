@@ -20,7 +20,7 @@ if command -v ruby >/dev/null 2>&1; then
   ruby -e '
     require "yaml"
     Dir[".github/workflows/*.{yml,yaml}"].sort.each do |path|
-      YAML.load_file(path, aliases: true)
+      YAML.load_file(path)
       puts "Workflow YAML passed: #{path}"
     end
   '
