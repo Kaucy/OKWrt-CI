@@ -11,10 +11,15 @@ devices="${7:?device list is required}"
 soc="${8:-all}"
 kernel_profile="${9:?kernel profile is required}"
 chunk="${10:?chunk is required}"
+scope="${11:-all}"
 
 case "$platform:$subtarget:$kernel_profile" in
   qcom:ipq60xx:kernel-6m|qcom:ipq60xx:kernel-large|*:kernel-default) ;;
   *) echo "Invalid kernel profile for $platform/$subtarget: $kernel_profile" >&2; exit 1 ;;
+esac
+case "$scope" in
+  all|smoke) ;;
+  *) echo "Invalid build scope: $scope" >&2; exit 1 ;;
 esac
 
 catalog="$GITHUB_WORKSPACE/config/devices.tsv"
@@ -80,6 +85,11 @@ CCACHE_DIR="$topdir/.ccache" ccache --cleanup
 # 选中但对应 .ko 尚未生成（例如 sha256-arm64.ko）的假性缺失。
 for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); do
   feature="${features[$feature_index]}"
+  # Smoke is a representative integration test, not a second full matrix.
+  # The highest eligible feature includes every lower feature's packages and
+  # exercises the widest kernel/package dependency path.  Build only that
+  # feature here; scope=all still builds every eligible feature for release.
+  [[ "$scope" == all || "$feature" == "$highest" ]] || continue
   selected=()
   for device in $devices; do
     (( ranks[$feature] <= ranks[${maximum[$device]}] )) && selected+=("$device")
@@ -203,15 +213,10 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         }
       done
     fi
-    # 只有真正可刷写的 factory/sysupgrade/combined 镜像才算固件；
-    # kernel.bin、initramfs、preloader 等辅助文件不能让完整性检查误通过。
-    find "$out" -maxdepth 1 -type f \
-      \( -name '*-sysupgrade.bin' -o -name '*-factory.bin' \
-         -o -name '*-sysupgrade.itb' -o -name '*-factory.itb' \
-         -o -name '*-sysupgrade.ubi' -o -name '*-factory.ubi' \
-         -o -name '*-combined*.img.gz' \) \
-      -size +1M \
-      -print -quit | grep -q .
+    # profiles.json is authoritative for a multi-profile build.  Checking only
+    # that the directory contains one firmware lets a silently skipped device
+    # hide behind another successful device in the same chunk.
+    "$GITHUB_WORKSPACE/scripts/verify-build-output.sh" "$out" $device_list
   ) 2>&1 | tee "$log"
   status=${PIPESTATUS[0]}
   set -e
@@ -241,6 +246,7 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
     "feature_set=$feature" \
     "soc=$soc" \
     "kernel_profile=$kernel_profile" \
+    "build_scope=$scope" \
     "chunk=$chunk" \
     "fork_sha=$FORK_SHA" \
     "upstream_sha=$UPSTREAM_SHA" \

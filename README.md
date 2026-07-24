@@ -54,9 +54,9 @@ standard--immortalwrt-mediatek-filogic-xiaomi_redmi-router-ax6000-ubootmod-squas
 - Qualcomm：IPQ50xx、IPQ60xx、IPQ807x/IPQ817x、IPQ95xx。
 - MediaTek：MT798x（Filogic）。
 
-当前目录合并去重后包含 **98 个 Qualcomm** 与 **192 个 MediaTek** 设备 profile。不同 LTS/Edge、Open/Pro 上游的实际设备集合并不完全相同，准确的设备代号、设备名称、SoC、版本支持与最高功能集统一列在 [DEVICES.md](DEVICES.md)。
+当前目录合并去重后包含 **96 个 Qualcomm** 与 **192 个 MediaTek** 设备 profile。不同 LTS/Edge、Open/Pro 上游的实际设备集合并不完全相同，准确的设备代号、设备名称、SoC、版本支持与最高功能集统一列在 [DEVICES.md](DEVICES.md)。
 
-CI 按目标、IPQ60xx 内核分区等级和最多 25 个设备一组生成 Bundle 矩阵，避免“每设备、每功能集一个 Job”造成大量重复编译。6 MiB 与大内核分区设备不会进入同一 Bundle：前者使用紧凑内核，后者不受其裁减影响。每个 Bundle 在同一源码树中依次增量构建 Core、Standard、Standard USB、Ultra 中符合设备条件的功能集，复用下载、工具链、内核与软件包编译结果。矩阵生成器会拒绝清单中超出上述芯片族的条目，防止旧清单或误配置扩大构建范围。
+CI 按目标、IPQ60xx 内核分区等级和最多 25 个设备一组生成 Bundle 矩阵，避免“每设备、每功能集一个 Job”造成大量重复编译。6 MiB 与大内核分区设备不会进入同一 Bundle：前者使用紧凑内核，后者不受其裁减影响。Smoke 为每个芯片族、通道、内核分区及 MTK Pro SoC 选择最高功能集代表设备，只编译其最高功能集；完整矩阵则在同一源码树中依次增量构建 Core、Standard、Standard USB、Ultra 中符合设备条件的全部功能集。两者都复用下载、工具链、内核与软件包编译结果，并按 `profiles.json` 逐设备确认可刷固件。矩阵生成器会拒绝清单中超出上述芯片族的条目，防止旧清单或误配置扩大构建范围。
 
 ## 上游仓库
 

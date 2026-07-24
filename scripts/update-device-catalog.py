@@ -213,19 +213,28 @@ def write_tsv(rows: list[dict[str, str]], output: pathlib.Path) -> None:
 
 
 def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
-    merged: dict[tuple[str, str, str, str], dict[str, object]] = {}
+    # A profile is identified by platform/subtarget/device.  Display names can
+    # legitimately differ in capitalization or wording between LTS and Edge;
+    # including the name in the identity duplicates one physical profile.
+    merged: dict[tuple[str, str, str], dict[str, object]] = {}
     for row in rows:
-        key = (row["platform"], row["subtarget"], row["device"], row["name"])
+        key = (row["platform"], row["subtarget"], row["device"])
         item = merged.setdefault(
             key,
-            {"soc": row["soc"], "versions": set(), "feature": "core", "kernel_profiles": set()},
+            {
+                "name": row["name"],
+                "soc": row["soc"],
+                "versions": set(),
+                "feature": "core",
+                "kernel_profiles": set(),
+            },
         )
         item["versions"].add(f'{row["edition"]}-{row["channel"]}')
         item["kernel_profiles"].add(row["kernel_profile"])
         if FEATURE_RANK[row["max_feature"]] > FEATURE_RANK[str(item["feature"])]:
             item["feature"] = row["max_feature"]
 
-    grouped: dict[str, list[tuple[tuple[str, str, str, str], dict[str, object]]]] = collections.defaultdict(list)
+    grouped: dict[str, list[tuple[tuple[str, str, str], dict[str, object]]]] = collections.defaultdict(list)
     for key, item in merged.items():
         grouped[str(item["feature"])].append((key, item))
 
@@ -279,10 +288,10 @@ def write_docs(rows: list[dict[str, str]], output: pathlib.Path) -> None:
                 "|---|---|---|---|---|:---:|:---:|:---:|:---:|",
             ]
         )
-        for (platform, subtarget, device, name), item in entries:
+        for (platform, subtarget, device), item in entries:
             versions = item["versions"]
             support = ["✅" if version in versions else "❌" for version, _label in VERSION_COLUMNS]
-            safe_name = name.replace("|", "\\|")
+            safe_name = str(item["name"]).replace("|", "\\|")
             safe_soc = str(item["soc"]).replace("|", "\\|")
             kernel_profiles = ", ".join(sorted(str(value) for value in item["kernel_profiles"]))
             lines.append(

@@ -19,8 +19,8 @@
 |---|---|---:|
 | mtk | filogic | 192 |
 | qcom | ipq50xx | 16 |
-| qcom | ipq60xx | 33 |
-| qcom | ipq807x | 47 |
+| qcom | ipq60xx | 32 |
+| qcom | ipq807x | 46 |
 | qcom | ipq95xx | 2 |
 
 ## 版本标记
@@ -134,7 +134,7 @@
 | qcom/ipq807x | `xiaomi_ax3600` | Xiaomi AX3600 | ipq8071 | kernel-default | ✅ | ✅ | ✅ | ✅ |
 | qcom/ipq807x | `xiaomi_ax3600-stock` | Xiaomi AX3600 | ipq8071 | kernel-default | ✅ | ✅ | ✅ | ✅ |
 
-## Standard（159 个设备 profile）
+## Standard（158 个设备 profile）
 
 | 平台/子目标 | 设备代号 | 设备名 | SoC | 内核分区 | Open LTS | Open Edge | Pro LTS | Pro Edge |
 |---|---|---|---|---|:---:|:---:|:---:|:---:|
@@ -254,8 +254,7 @@
 | qcom/ipq60xx | `tplink_eap620-hd-v3` | TP-Link EAP620 HD v3 | ipq6018 | kernel-large | ❌ | ✅ | ❌ | ✅ |
 | qcom/ipq60xx | `tplink_eap623-outdoor-hd-v1` | TP-Link EAP623-Outdoor HD v1 | ipq6018 | kernel-large | ❌ | ✅ | ❌ | ✅ |
 | qcom/ipq60xx | `tplink_eap623od-hd-v1` | TP-Link EAP623-Outdoor HD v1 | ipq6018 | kernel-large | ✅ | ❌ | ✅ | ❌ |
-| qcom/ipq60xx | `tplink_eap625-outdoor-hd-v1` | TP-Link EAP625-Outdoor HD v1 | ipq6018 | kernel-large | ❌ | ✅ | ❌ | ✅ |
-| qcom/ipq60xx | `tplink_eap625-outdoor-hd-v1` | TP-Link EAP625-Outdoor HD v1 and v1.6 | ipq6018 | kernel-large | ✅ | ❌ | ✅ | ❌ |
+| qcom/ipq60xx | `tplink_eap625-outdoor-hd-v1` | TP-Link EAP625-Outdoor HD v1 | ipq6018 | kernel-large | ✅ | ✅ | ✅ | ✅ |
 | qcom/ipq60xx | `xiaomi_ax1800` | Xiaomi AX1800 | ipq6000 | kernel-large | ❌ | ❌ | ✅ | ✅ |
 | qcom/ipq60xx | `yuncore_fap650` | Yuncore FAP650 | ipq6018 | kernel-large | ✅ | ✅ | ✅ | ✅ |
 | qcom/ipq60xx | `zn_m2` | ZN M2 | ipq6000 | kernel-large | ❌ | ❌ | ✅ | ✅ |
@@ -298,7 +297,7 @@
 | qcom/ipq807x | `zyxel_nbg7815` | ZYXEL NBG7815 | ipq8074 | kernel-default | ✅ | ✅ | ✅ | ✅ |
 | qcom/ipq95xx | `8devices_kiwi-dvk` | 8devices Kiwi-DVK | ipq9570 | kernel-default | ✅ | ✅ | ❌ | ❌ |
 
-## Core（41 个设备 profile）
+## Core（40 个设备 profile）
 
 | 平台/子目标 | 设备代号 | 设备名 | SoC | 内核分区 | Open LTS | Open Edge | Pro LTS | Pro Edge |
 |---|---|---|---|---|:---:|:---:|:---:|:---:|
@@ -340,6 +339,5 @@
 | qcom/ipq50xx | `linksys_mx6200` | Linksys MX6200 | ipq5018 | kernel-default | ✅ | ✅ | ❌ | ❌ |
 | qcom/ipq60xx | `8devices_mango-dvk` | 8devices Mango-DVK | ipq6010 | kernel-large | ✅ | ✅ | ✅ | ✅ |
 | qcom/ipq807x | `zyxel_nwa110ax` | Zyxel NWA110AX | ipq8070 | kernel-default | ❌ | ✅ | ❌ | ✅ |
-| qcom/ipq807x | `zyxel_nwa210ax` | ZYXEL NWA210AX | ipq8071 | kernel-default | ✅ | ❌ | ✅ | ❌ |
-| qcom/ipq807x | `zyxel_nwa210ax` | Zyxel NWA210AX | ipq8071 | kernel-default | ❌ | ✅ | ❌ | ✅ |
+| qcom/ipq807x | `zyxel_nwa210ax` | Zyxel NWA210AX | ipq8071 | kernel-default | ✅ | ✅ | ✅ | ✅ |
 | qcom/ipq95xx | `qcom_rdp433` | Qualcomm Technologies, Inc. RDP433 AP-AL02-C4 | ipq9574 | kernel-default | ✅ | ✅ | ❌ | ❌ |

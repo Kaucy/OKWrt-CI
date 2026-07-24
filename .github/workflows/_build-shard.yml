@@ -34,8 +34,19 @@ env:
   OPENWRT_DIR: /mnt/workdir/openwrt
 
 jobs:
+  preflight:
+    name: Validate repository and matrices
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run fast validation
+        run: |
+          chmod +x scripts/*.sh tests/*.sh
+          scripts/validate-repository.sh
+
   matrix:
     name: Generate ${{ inputs.platform }}-${{ inputs.edition }} matrix
+    needs: preflight
     runs-on: ubuntu-latest
     outputs:
       builds: ${{ steps.generate.outputs.builds }}
@@ -127,9 +138,10 @@ jobs:
             ${{ env.OPENWRT_DIR }}/staging_dir/host*
             ${{ env.OPENWRT_DIR }}/staging_dir/toolchain-*
             ${{ env.OPENWRT_DIR }}/build_dir/host*
-          key: okwrt-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ env.UPSTREAM_SHA }}
-          restore-keys: |
-            okwrt-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-
+          # Never restore host/toolchain stamps from a different upstream SHA.
+          # Those partial fallbacks caused missing OpenSSL/Meson binaries while
+          # their old .built markers remained present.
+          key: okwrt-v2-${{ matrix.target }}-${{ matrix.subtarget }}-${{ matrix.edition }}-${{ matrix.channel }}-${{ env.UPSTREAM_SHA }}
 
       - name: Update feeds
         working-directory: ${{ env.OPENWRT_DIR }}
@@ -142,7 +154,8 @@ jobs:
           scripts/build-feature-bundle.sh "$OPENWRT_DIR" \
             '${{ matrix.platform }}' '${{ matrix.target }}' '${{ matrix.subtarget }}' \
             '${{ matrix.edition }}' '${{ matrix.channel }}' '${{ matrix.devices }}' \
-            '${{ matrix.soc }}' '${{ matrix.kernel_profile }}' '${{ matrix.chunk }}'
+            '${{ matrix.soc }}' '${{ matrix.kernel_profile }}' '${{ matrix.chunk }}' \
+            '${{ inputs.scope }}'
 
       # Keep every feature set in its own artifact. Qualcomm Standard+ bundles
       # can exceed the 512 MiB independent-download limit when combined, which
