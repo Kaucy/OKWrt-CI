@@ -38,7 +38,11 @@ if [[ "$scope" == smoke ]]; then
     [[ "$platform:$subtarget" == qcom:ipq60xx ]] && smoke_profile="$kernel_profile"
     smoke_soc=all
     [[ "$platform:$edition" == mtk:pro ]] && smoke_soc="$soc"
-    key="$platform|$edition|$channel|$smoke_profile|$smoke_soc"
+    # Smoke must cover every target family, not merely one kernel-default
+    # Qualcomm device per channel.  Without target/subtarget in this key,
+    # IPQ50xx, IPQ807x and IPQ95xx collapse into the same bucket and a green
+    # smoke run can leave two complete Qualcomm families entirely untested.
+    key="$platform|$target|$subtarget|$edition|$channel|$smoke_profile|$smoke_soc"
     rank="${feature_ranks[$max_feature]}"
     if [[ -z "${selected_rows[$key]:-}" || "$rank" -gt "${selected_ranks[$key]}" ]]; then
       selected_rows[$key]="$platform|$target|$subtarget|$edition|$channel|$soc|$kernel_profile|$device"
