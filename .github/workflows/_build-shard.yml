@@ -1,5 +1,6 @@
 name: Reusable OK-Wrt Build Shard
 
+# Full catalogs run with scope=all only after the representative smoke matrix passes.
 on:
   workflow_call:
     inputs:
