@@ -74,6 +74,7 @@ TINY_CORE_EXCLUSIONS = (
     "kmod-ipt-nat",
 )
 
+# Keep this boundary aligned with the fixed-size classification in main().
 BLOCK_RE = re.compile(r"^define Device/([^\s]+)\n(.*?)^endef\s*$", re.M | re.S)
 
 
