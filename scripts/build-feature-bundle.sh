@@ -179,6 +179,17 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         make package/feeds/nss_packages/qca-nss-ecm/compile -j1 V=s
         recovery_attempted=true
       fi
+      # Rebuilding a lower feature set can invalidate uboot-tools' compiled
+      # binaries without removing its package stamps.  The next package pass
+      # then tries to install a missing dumpimage binary.  Repair only this
+      # observed stale state after world has failed; a clean first build still
+      # follows the normal dependency graph.
+      if ! find build_dir -path '*/u-boot-*/tools/dumpimage' \
+          -type f -perm -u+x -print -quit | grep -q .; then
+        make package/boot/uboot-tools/clean
+        make package/boot/uboot-tools/compile -j1 V=s
+        recovery_attempted=true
+      fi
       $recovery_attempted || exit 1
       # A second parallel world build hides APK/rootfs installation failures
       # behind the generic top-level error. Most outputs are already built at
