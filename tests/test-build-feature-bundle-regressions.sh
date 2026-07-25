@@ -278,3 +278,46 @@ for kernel_fragment in \
   grep -Fxq '# CONFIG_ALLOW_DEV_COREDUMP is not set' "$kernel_fragment"
   grep -Fxq '# CONFIG_COREDUMP is not set' "$kernel_fragment"
   grep -Fxq '# CONFIG_DEV_COREDUMP is not set' "$kernel_fragment"
+  grep -Fxq '# CONFIG_DEBUG_BUGVERBOSE is not set' "$kernel_fragment"
+  ! grep -Eq '^(CONFIG_ALLOW_DEV_COREDUMP|CONFIG_COREDUMP|CONFIG_DEV_COREDUMP|CONFIG_DEBUG_BUGVERBOSE)=y$' "$kernel_fragment"
+done
+! grep -Fq 'CONFIG_KERNEL_CC_OPTIMIZE_FOR_SIZE=y' "$kernel_config_fixture/kernel-large/.config"
+! grep -Fq '# CONFIG_KERNEL_MPTCP is not set' "$kernel_config_fixture/kernel-large/.config"
+! grep -Fq '# CONFIG_KERNEL_MPTCP_IPV6 is not set' "$kernel_config_fixture/kernel-large/.config"
+grep -Fxq 'CONFIG_KERNEL_XDP_SOCKETS=y' "$kernel_config_fixture/kernel-large/.config"
+grep -Fq 'select KERNEL_ARM_PMU if' "$kernel_config_fixture/kernel-large/config/Config-kernel.in"
+grep -Fq 'select KERNEL_ARM_PMUV3 if' "$kernel_config_fixture/kernel-large/config/Config-kernel.in"
+grep -Fxq 'CONFIG_ALLOW_DEV_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
+grep -Fxq 'CONFIG_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
+grep -Fxq 'CONFIG_DEV_COREDUMP=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
+grep -Fxq 'CONFIG_DEBUG_BUGVERBOSE=y' "$kernel_config_fixture/kernel-large/target/linux/qualcommax/config-6.12"
+
+mkdir -p "$matrix_fixture/config"
+cat > "$matrix_fixture/config/devices.tsv" <<'EOF'
+platform	target	subtarget	device	name	soc	edition	channel	max_feature	kernel_profile
+qcom	qualcommax	ipq50xx	ipq50-test	IPQ50 Test	ipq5018	open	edge	standard-usb	kernel-default
+qcom	qualcommax	ipq60xx	jdcloud_re-cs-02	JDCloud RE-CS-02	ipq6010	open	edge	ultra	kernel-6m
+qcom	qualcommax	ipq60xx	linksys_mr7500	Linksys MR7500	ipq6018	open	edge	standard-usb	kernel-large
+qcom	qualcommax	ipq807x	ipq807-test	IPQ807 Test	ipq8074	open	edge	standard-usb	kernel-default
+qcom	qualcommbe	ipq95xx	ipq95-test	IPQ95 Test	ipq9574	open	edge	standard-usb	kernel-default
+mtk	mediatek	filogic	mt7981-test	MT7981 Test	mt7981	pro	edge	standard-usb	kernel-default
+mtk	mediatek	filogic	mt7986-test	MT7986 Test	mt7986	pro	edge	standard	kernel-default
+EOF
+full_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" all edge qcom open)"
+smoke_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" smoke edge qcom open)"
+for generated in "$full_matrix" "$smoke_matrix"; do
+  jq -e '[.include[].subtarget] | sort == ["ipq50xx", "ipq60xx", "ipq60xx", "ipq807x", "ipq95xx"]' \
+    <<< "$generated" >/dev/null
+  jq -e '[.include[] | select(.subtarget == "ipq60xx") | .kernel_profile] | sort == ["kernel-6m", "kernel-large"]' \
+    <<< "$generated" >/dev/null
+  jq -e 'all(.include[] | select(.subtarget == "ipq60xx");
+    (.kernel_profile == "kernel-6m" and .devices == "jdcloud_re-cs-02") or
+    (.kernel_profile == "kernel-large" and .devices == "linksys_mr7500"))' \
+    <<< "$generated" >/dev/null
+done
+mtk_smoke_matrix="$(GITHUB_WORKSPACE="$matrix_fixture" "$matrix" smoke edge mtk pro)"
+jq -e '[.include[].soc] | sort == ["mt7981", "mt7986"]' <<< "$mtk_smoke_matrix" >/dev/null
+jq -e 'all(.include[]; (.soc == "mt7981" and .devices == "mt7981-test") or (.soc == "mt7986" and .devices == "mt7986-test"))' \
+  <<< "$mtk_smoke_matrix" >/dev/null
+
+echo 'Build bundle regression checks passed.'
