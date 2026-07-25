@@ -170,6 +170,9 @@ sed -n '/^define Device\/small$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
 
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/clean' "$bundle"
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/compile -j1 V=s' "$bundle"
+grep -Fq "find build_dir -path '*/u-boot-*/tools/dumpimage'" "$bundle"
+grep -Fq 'make package/boot/uboot-tools/clean' "$bundle"
+grep -Fq 'make package/boot/uboot-tools/compile -j1 V=s' "$bundle"
 # The post-recovery world run must expose package/install diagnostics.
 grep -Fq 'make -j1 V=s' "$bundle"
 grep -Fq 'CCACHE_DIR="$topdir/.ccache" ccache --max-size=1G' "$bundle"
