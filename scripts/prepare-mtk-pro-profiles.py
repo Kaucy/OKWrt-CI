@@ -38,6 +38,42 @@ COMPACT_CORE_EXCLUSIONS = (
     "luci-i18n-wol-zh-cn",
 )
 
+# The closed mt_wifi stack plus the normal LuCI userspace no longer fits the
+# fixed 14-15 MiB firmware partitions used by several MT7981 NOR devices.  Core
+# is their only eligible feature set, so keep a bootable command-line router
+# with vendor Wi-Fi while omitting the web UI, optional acceleration and
+# duplicate full-size command-line utilities.  These exclusions are applied
+# per profile: larger devices in the same multi-profile build retain the full
+# Pro image.
+TINY_CORE_EXCLUSIONS = (
+    "luci",
+    "luci-ssl",
+    "luci-light",
+    "luci-base",
+    "luci-mod-admin-full",
+    "luci-mod-network",
+    "luci-mod-status",
+    "luci-mod-system",
+    "luci-app-firewall",
+    "luci-theme-argon",
+    "luci-app-argon-config",
+    "luci-app-mtwifi-cfg",
+    "rpcd-mod-luci",
+    "rpcd-mod-rrdns",
+    "uhttpd",
+    "uhttpd-mod-ubus",
+    "ucode-mod-html",
+    "curl",
+    "wget-ssl",
+    "bash",
+    "ip-full",
+    "ip-bridge",
+    "ethtool",
+    "kmod-mediatek_hnat",
+    "kmod-warp",
+    "kmod-ipt-nat",
+)
+
 BLOCK_RE = re.compile(r"^define Device/([^\s]+)\n(.*?)^endef\s*$", re.M | re.S)
 
 
@@ -101,6 +137,7 @@ def main() -> int:
         return dict(values)
 
     compact: set[str] = set()
+    tiny: set[str] = set()
     for name in blocks:
         values = resolve(name)
         haystack = " ".join(
@@ -111,8 +148,13 @@ def main() -> int:
         image_size = size_kib(values.get("IMAGE_SIZE", ""))
         if image_size is not None and image_size < 32768:
             compact.add(name)
+        if image_size is not None and image_size < 16384:
+            tiny.add(name)
 
-    exclusions = " ".join(f"-{package}" for package in COMPACT_CORE_EXCLUSIONS)
+    compact_exclusions = " ".join(
+        f"-{package}" for package in COMPACT_CORE_EXCLUSIONS
+    )
+    tiny_exclusions = " ".join(f"-{package}" for package in TINY_CORE_EXCLUSIONS)
 
     def add_compact_exclusions(match: re.Match[str]) -> str:
         name, body = match.group(1), match.group(2)
@@ -120,8 +162,13 @@ def main() -> int:
             return match.group(0)
         body = body.rstrip() + (
             "\n  # OKWRT_MTK_PRO_COMPACT_CORE: fit the vendor stack on fixed small flash.\n"
-            f"  DEVICE_PACKAGES += {exclusions}\n"
+            f"  DEVICE_PACKAGES += {compact_exclusions}\n"
         )
+        if name in tiny:
+            body += (
+                "  # OKWRT_MTK_PRO_TINY_CORE: keep vendor Wi-Fi and routing on sub-16 MiB images.\n"
+                f"  DEVICE_PACKAGES += {tiny_exclusions}\n"
+            )
         return f"define Device/{name}\n{body}endef"
 
     text = BLOCK_RE.sub(add_compact_exclusions, text)
