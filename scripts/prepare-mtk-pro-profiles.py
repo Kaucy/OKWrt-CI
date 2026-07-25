@@ -149,6 +149,7 @@ def main() -> int:
         image_size = size_kib(values.get("IMAGE_SIZE", ""))
         if image_size is not None and image_size < 32768:
             compact.add(name)
+        # 16 MiB is the first layout class where the complete Pro Core fits.
         if image_size is not None and image_size < 16384:
             tiny.add(name)
 
