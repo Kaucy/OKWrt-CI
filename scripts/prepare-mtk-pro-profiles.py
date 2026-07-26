@@ -72,7 +72,45 @@ TINY_CORE_EXCLUSIONS = (
     "kmod-mediatek_hnat",
     "kmod-warp",
     "kmod-ipt-nat",
+    # These NOR-only profiles cannot fit both the closed wireless stack and
+    # optional WAN/IPv6, RPC or acceleration layers.  Keep IPv4 DHCP/DNS,
+    # Firewall4, Dropbear and the vendor Wi-Fi control plane.
+    "wpad-openssl",
+    "hostapd-common",
+    "odhcp6c",
+    "odhcpd-ipv6only",
+    "ppp",
+    "ppp-mod-pppoe",
+    "luci-proto-ipv6",
+    "luci-proto-ppp",
+    "kmod-ppp",
+    "kmod-pppoe",
+    "kmod-pppox",
+    "kmod-mppe",
+    "kmod-slhc",
+    "rpcd",
+    "rpcd-mod-file",
+    "rpcd-mod-iwinfo",
+    "rpcd-mod-ucode",
+    "libiwinfo-data",
+    "autocore",
+    "kmod-crypto-hw-safexcel",
+    "eip197-mini-firmware",
+    "kmod-nft-fullcone",
+    "kmod-nft-offload",
+    "kmod-nf-nathelper",
+    "kmod-nf-conntrack6",
+    "kmod-nf-log6",
+    "kmod-nf-reject6",
+    "kmod-ipt-core",
+    "kmod-nf-ipt",
+    "ca-bundle",
+    "ca-certificates",
+    "shellsync",
+    "dnsmasq-full",
 )
+
+TINY_CORE_ADDITIONS = ("dnsmasq",)
 
 # Keep this boundary aligned with the fixed-size classification in main().
 BLOCK_RE = re.compile(r"^define Device/([^\s]+)\n(.*?)^endef\s*$", re.M | re.S)
@@ -156,7 +194,12 @@ def main() -> int:
     compact_exclusions = " ".join(
         f"-{package}" for package in COMPACT_CORE_EXCLUSIONS
     )
-    tiny_exclusions = " ".join(f"-{package}" for package in TINY_CORE_EXCLUSIONS)
+    tiny_packages = " ".join(
+        (
+            *(f"-{package}" for package in TINY_CORE_EXCLUSIONS),
+            *TINY_CORE_ADDITIONS,
+        )
+    )
 
     def add_compact_exclusions(match: re.Match[str]) -> str:
         name, body = match.group(1), match.group(2)
@@ -169,7 +212,7 @@ def main() -> int:
         if name in tiny:
             body += (
                 "  # OKWRT_MTK_PRO_TINY_CORE: keep vendor Wi-Fi and routing on sub-16 MiB images.\n"
-                f"  DEVICE_PACKAGES += {tiny_exclusions}\n"
+                f"  DEVICE_PACKAGES += {tiny_packages}\n"
             )
         return f"define Device/{name}\n{body}endef"
 
