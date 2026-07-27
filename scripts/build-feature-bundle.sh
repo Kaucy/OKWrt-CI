@@ -180,14 +180,22 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
         recovery_attempted=true
       fi
       # Rebuilding a lower feature set can invalidate uboot-tools' compiled
-      # binaries without removing its package stamps.  The next package pass
-      # then tries to install a missing dumpimage binary.  Repair only this
-      # observed stale state after world has failed; a clean first build still
-      # follows the normal dependency graph.
+      # binaries without removing its package state.  Depending on the
+      # upstream package version, the pending dumpimage install can live in
+      # either .pkgdir or ipkg-<arch>.  Check both layouts per U-Boot build
+      # directory so another cached version cannot hide the broken active one.
+      # Repair only after world has failed; a clean first build still follows
+      # the normal dependency graph.
       uboot_tools_broken=false
       while IFS= read -r uboot_dir; do
-        if [[ -d "$uboot_dir/.pkgdir/dumpimage" \
-           && ! -x "$uboot_dir/tools/dumpimage" ]]; then
+        dumpimage_package_pending=false
+        if [[ -d "$uboot_dir/.pkgdir/dumpimage" ]] \
+          || find "$uboot_dir" -mindepth 2 -maxdepth 2 -type d \
+            -path '*/ipkg-*/dumpimage' -print -quit | grep -q .; then
+          dumpimage_package_pending=true
+        fi
+        if $dumpimage_package_pending \
+          && [[ ! -x "$uboot_dir/tools/dumpimage" ]]; then
           uboot_tools_broken=true
           break
         fi
