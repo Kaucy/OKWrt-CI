@@ -184,8 +184,15 @@ for ((feature_index=${#features[@]} - 1; feature_index >= 0; feature_index--)); 
       # then tries to install a missing dumpimage binary.  Repair only this
       # observed stale state after world has failed; a clean first build still
       # follows the normal dependency graph.
-      if ! find build_dir -path '*/u-boot-*/tools/dumpimage' \
-          -type f -perm -u+x -print -quit | grep -q .; then
+      uboot_tools_broken=false
+      while IFS= read -r uboot_dir; do
+        if [[ -d "$uboot_dir/.pkgdir/dumpimage" \
+           && ! -x "$uboot_dir/tools/dumpimage" ]]; then
+          uboot_tools_broken=true
+          break
+        fi
+      done < <(find build_dir -type d -name 'u-boot-*' -print)
+      if $uboot_tools_broken; then
         make package/boot/uboot-tools/clean
         make package/boot/uboot-tools/compile -j1 V=s
         recovery_attempted=true
