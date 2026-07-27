@@ -197,7 +197,10 @@ sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
 
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/clean' "$bundle"
 grep -Fq 'make package/feeds/nss_packages/qca-nss-ecm/compile -j1 V=s' "$bundle"
-grep -Fq "find build_dir -path '*/u-boot-*/tools/dumpimage'" "$bundle"
+grep -Fq "find build_dir -type d -name 'u-boot-*' -print" "$bundle"
+grep -Fq '[[ -d "$uboot_dir/.pkgdir/dumpimage"' "$bundle"
+grep -Fq '! -x "$uboot_dir/tools/dumpimage"' "$bundle"
+! grep -Fq "find build_dir -path '*/u-boot-*/tools/dumpimage'" "$bundle"
 grep -Fq 'make package/boot/uboot-tools/clean' "$bundle"
 grep -Fq 'make package/boot/uboot-tools/compile -j1 V=s' "$bundle"
 # The post-recovery world run must expose package/install diagnostics.
