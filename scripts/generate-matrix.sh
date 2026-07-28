@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Every non-smoke push intentionally expands each eligible catalog device and feature-set combination.
+# Each non-smoke push intentionally expands every eligible catalog device and feature-set combination.
 scope="${1:-all}"
 channel_filter="${2:-all}"
 platform_filter="${3:-all}"
