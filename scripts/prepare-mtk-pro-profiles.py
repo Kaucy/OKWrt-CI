@@ -46,6 +46,9 @@ COMPACT_CORE_EXCLUSIONS = (
 # per profile: larger devices in the same multi-profile build retain the full
 # Pro image.
 TINY_CORE_EXCLUSIONS = (
+    # The package manager is not needed for a fixed-image recovery target and
+    # saves the remaining margin on 15 MiB layouts.
+    "apk-openssl",
     "luci",
     "luci-ssl",
     "luci-light",
