@@ -181,6 +181,8 @@ sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq -- '-luci'
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
+  | grep -Fq -- '-apk-openssl'
+sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq -- '-kmod-warp'
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq -- '-wpad-openssl'
