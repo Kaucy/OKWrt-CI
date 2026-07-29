@@ -179,6 +179,8 @@ sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq 'OKWRT_MTK_PRO_TINY_CORE'
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
+  | grep -Fq 'OKWRT_MTK_PRO_MICRO_CORE'
+sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq -- '-luci'
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq -- '-apk-openssl'
@@ -192,6 +194,12 @@ sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq -- '-ppp'
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Fq -- '-autocore'
+sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
+  | grep -Fq -- '-libustream-openssl'
+sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
+  | grep -Fq -- '-uclient-fetch'
+sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
+  | grep -Fq -- '-hnat-detect'
 sed -n '/^define Device\/tiny$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \
   | grep -Eq '(^|[[:space:]])dnsmasq([[:space:]]|$)'
 ! sed -n '/^define Device\/large$/,/^endef$/p' "$mtk_profile_fixture/filogic.mk" \

@@ -115,6 +115,22 @@ TINY_CORE_EXCLUSIONS = (
 
 TINY_CORE_ADDITIONS = ("dnsmasq",)
 
+# The remaining fixed 14-14.5 MiB NOR layouts still have roughly 1 MiB less
+# room than the 15 MiB class.  Their image recipe appends the kernel and rootfs
+# directly, so storage helpers, acceleration detection, SMP tuning and online
+# fetch support are not required at runtime.  Keep the vendor Wi-Fi control
+# plane, IPv4 DNS/DHCP, Firewall4 and Dropbear intact.
+MICRO_CORE_EXCLUSIONS = (
+    "fitblk",
+    "block-mount",
+    "mtk-smp",
+    "l1util",
+    "hnat-detect",
+    "procd-ujail",
+    "uclient-fetch",
+    "libustream-openssl",
+)
+
 # Keep this boundary aligned with the fixed-size classification in main().
 BLOCK_RE = re.compile(r"^define Device/([^\s]+)\n(.*?)^endef\s*$", re.M | re.S)
 
@@ -180,6 +196,7 @@ def main() -> int:
 
     compact: set[str] = set()
     tiny: set[str] = set()
+    micro: set[str] = set()
     for name in blocks:
         values = resolve(name)
         haystack = " ".join(
@@ -193,6 +210,10 @@ def main() -> int:
         # 16 MiB is the first layout class where the complete Pro Core fits.
         if image_size is not None and image_size < 16384:
             tiny.add(name)
+        # The 15 MiB class fits after the tiny exclusions.  Smaller fixed NOR
+        # layouts need the additional non-routing helpers removed.
+        if image_size is not None and image_size < 15360:
+            micro.add(name)
 
     compact_exclusions = " ".join(
         f"-{package}" for package in COMPACT_CORE_EXCLUSIONS
@@ -202,6 +223,9 @@ def main() -> int:
             *(f"-{package}" for package in TINY_CORE_EXCLUSIONS),
             *TINY_CORE_ADDITIONS,
         )
+    )
+    micro_exclusions = " ".join(
+        f"-{package}" for package in MICRO_CORE_EXCLUSIONS
     )
 
     def add_compact_exclusions(match: re.Match[str]) -> str:
@@ -216,6 +240,11 @@ def main() -> int:
             body += (
                 "  # OKWRT_MTK_PRO_TINY_CORE: keep vendor Wi-Fi and routing on sub-16 MiB images.\n"
                 f"  DEVICE_PACKAGES += {tiny_packages}\n"
+            )
+        if name in micro:
+            body += (
+                "  # OKWRT_MTK_PRO_MICRO_CORE: fit direct-layout NOR images below 15 MiB.\n"
+                f"  DEVICE_PACKAGES += {micro_exclusions}\n"
             )
         return f"define Device/{name}\n{body}endef"
 
