@@ -97,3 +97,5 @@ MediaTek Pro 使用 SDK/闭源驱动栈，目前只为闭源 `mt_wifi` 支持的
 Standard 同时提供多套代理前端和后端，但默认不会同时启用服务。HomeProxy 使用 sing-box；PassWall2 包含 Xray 与 sing-box 核心及 nftables 透明代理组件；daed 包含 LuCI 前端、daed 后端和所需 eBPF/BTF 内核能力。
 
 本项目不包含第三方软件本身的额外授权。使用 OpenClash、HomeProxy、PassWall2、daed、Tailscale、Docker、厂商驱动或其他组件时，请同时遵守其许可证与所在地区的规定。
+
+<!-- Full-matrix validation trigger: MT7981 Core fit, 2026-07-29 -->
