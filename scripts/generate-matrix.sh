@@ -85,3 +85,5 @@ while IFS= read -r key; do
 done < <(printf '%s\n' "${!groups[@]}" | sort)
 
 jq -c '{include:.}' <<< "$items"
+
+# Full-matrix validation trigger: MT7981 Core fit, 2026-07-29
